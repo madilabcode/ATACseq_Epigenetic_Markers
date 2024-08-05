@@ -1,0 +1,21 @@
+SampleID,BamReads,peak.caller,peaks,Sex,Cell Type,Condition
+G52CD4_S145933,../G52CD4_S145933_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G52CD4_S145933_peak_peaks.xls,f,naive CD4+ T-cells,poor
+G52CD8_S145932,../G52CD8_S145932_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G52CD8_S145932_peak_peaks.xls,f,naive CD8+ T-cells,poor
+G27CD4,,,,m,naive CD4+ T-cells,poor
+G27CD8_S145935,../G27CD8_S145935_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G27CD8_S145935_peak_peaks.xls,m,naive CD8+ T-cells,poor
+G50CD4_S145934,../G50CD4_S145934_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G50CD4_S145934_peak_peaks.xls,f,naive CD4+ T-cells,poor
+G50CD8_S145937,../G50CD8_S145937_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G50CD8_S145937_peak_peaks.xls,f,naive CD8+ T-cells,poor
+G48CD4_S145936,../G48CD4_S145936_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G48CD4_S145936_peak_peaks.xls,f,naive CD4+ T-cells,good
+G48CD8_S145920,../G48CD8_S145920_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G48CD8_S145920_peak_peaks.xls,f,naive CD8+ T-cells,good
+G44CD4_S145919,../G44CD4_S145919_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G44CD4_S145919_peak_peaks.xls,f,naive CD4+ T-cells,poor
+G44CD8_S145922,../G44CD8_S145922_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G44CD8_S145922_peak_peaks.xls,f,naive CD8+ T-cells,poor
+G81CD4_S145921,../G81CD4_S145921_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G81CD4_S145921_peak_peaks.xls,m,naive CD4+ T-cells,poor
+G81CD8_S145924,../G81CD8_S145924_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G81CD8_S145924_peak_peaks.xls,m,naive CD8+ T-cells,poor
+G70CD4_S145923,../G70CD4_S145923_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G70CD4_S145923_peak_peaks.xls,m,naive CD4+ T-cells,good
+G70CD8_S145926,../G70CD8_S145926_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G70CD8_S145926_peak_peaks.xls,m,naive CD8+ T-cells,good
+G58CD4_S145925,../G58CD4_S145925_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G58CD4_S145925_peak_peaks.xls,f,naive CD4+ T-cells,good
+G58CD8_S145928,../G58CD8_S145928_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G58CD8_S145928_peak_peaks.xls,f,naive CD8+ T-cells,good
+G08CD4_S145927,../G08CD4_S145927_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G08CD4_S145927_peak_peaks.xls,f,naive CD4+ T-cells,good
+G08CD8_S145930,../G08CD8_S145930_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G08CD8_S145930_peak_peaks.xls,f,naive CD8+ T-cells,good
+G09CD4_S145929,../G09CD4_S145929_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G09CD4_S145929_peak_peaks.xls,m,naive CD4+ T-cells,good
+G09CD8_S145931,../G09CD8_S145931_NoMT_subset.blacklist-filtered.shifted.sorted.bam,macs,G09CD8_S145931_peak_peaks.xls,m,naive CD8+ T-cells,good

@@ -110,11 +110,11 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   dba_Counts_norm_contrast <- dba.contrast(dba_Counts_norm, contrast = c("Condition", group1, group2))
   dba_Counts_norm_contrast_analyzed <- dba.analyze(dba_Counts_norm_contrast, method = DE_Method)
   
-  png(paste0(outputdir,celltype,'_peak_counts_correlation_heatmap_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, heigh=7, res=800)
+  png(paste0(outputdir,celltype,'_peak_counts_correlation_heatmap_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
   dba.plotHeatmap(dba_Counts_norm_contrast_analyzed, main = "Correlation Plot for CD4 Samples")
   dev.off()
   
-  png(paste0(outputdir,celltype,'_peak_counts_PCA_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, heigh=7, res=800)
+  png(paste0(outputdir,celltype,'_peak_counts_PCA_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
   dba.plotPCA(dba_Counts_norm_contrast_analyzed,DBA_CONDITION, label=DBA_ID)
   dev.off()
   
@@ -124,6 +124,9 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   write.csv(as.data.frame(DBS_sig),paste0(outputdir,celltype,'_Sig_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
   
   
+  DBS_sig <- add_gene_names(DBS_sig, dba_Counts_norm_contrast_analyzed)
+  
+  write.csv(DBS_sig, paste0(outputdir,celltype,'_Genes_Sig_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
   
   #########       Volcano plot
   
@@ -133,6 +136,8 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   write.csv(DBS_All, paste0(outputdir,celltype,'_ALL_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
   
   DBS_All <- add_gene_names(DBS_All, dba_Counts_norm_contrast_analyzed)
+  
+  write.csv(DBS_All, paste0(outputdir,celltype,'_Genes_ALL_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
   
   # Define significance thresholds
   pval_threshold <- pval_th
@@ -168,7 +173,7 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   annotate("text", x = max(DBS_All$Fold), y = 4.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
   
   
-  png(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, heigh=7, res=800)
+  png(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
   print(volcano_plot)
   dev.off()
   
@@ -198,139 +203,42 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
 ```
 
 ```{r}
-CD4_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD4_GoodvsPoor_Results")
-#CD4_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD4_GoodvsPoor_Results", dba_counts_RDS_File = "./CD4_GoodvsPoor_Results/CD4_Counts.RDS")
-```
+#CD4_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD4_GoodvsPoor_Results/")
+CD4_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD4_GoodvsPoor_Results/", dba_counts_RDS_File = "./CD4_GoodvsPoor_Results/CD4_Counts.RDS")
 
-
-```{r}
-################################## CD4 ##########################################
-
-# Set the working directory
-setwd("D:\\Kfir\\ATAC-Seq\\Bwa-mem_Macs2_Output\\peak_files")
-
-# Load the sample sheet
-CD4_samples <- read.csv("Sample_Sheet_CD4.csv")
-
-# Initialize the dba object with the sample sheet
-CD4 <- dba(sampleSheet=CD4_samples) 
-CD4_blklst <- dba.blacklist(CD4) 
-CD4_Counts <- dba.count(CD4_blklst) #bParallel = TRUE, score=DBA_SCORE_READS, summits=75) 
-saveRDS(CD4_Counts,file = "CD4_Counts.RDS")
+#CD4_Good_Poor_Results_List_Deseq2 <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05,DE_Method=DBA_DESEQ2, Normalization_Method = DBA_NORM_RLE , outputdir = "./CD4_GoodvsPoor_Results_Deseq/", dba_counts_RDS_File = "./CD4_GoodvsPoor_Results/CD4_Counts.RDS")
 ```
 
 ```{r}
-CD4_Counts_norm <- dba.normalize(CD4_Counts, method = DBA_EDGER, normalize = DBA_NORM_TMM)# method = DBA_DESEQ2, normalize = DBA_NORM_RLE)  
-CD4_Counts_norm_contrast <- dba.contrast(CD4_Counts_norm, contrast = c("Condition", "good", "poor"))
-CD4_Counts_norm_contrast_analyzed <- dba.analyze(CD4_Counts_norm_contrast, method = DBA_EDGER)#DBA_DESEQ2)
-#CD4_Counts <- dba.count(CD4, bParallel = TRUE, score=DBA_SCORE_READS)
-
-png('./CD4_counts_correlation_heatmap.png', units="in", width=7, heigh=7, res=800)
-dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, main = "Correlation Plot for CD4 Samples")
-#plot(CD4_Counts, main="Correlation Plot for CD4 Samples")
-dev.off()
-
-png('./CD4_counts_PCA.png', units="in", width=7, heigh=7, res=800)
-dba.plotPCA(CD4_Counts_norm_contrast_analyzed,DBA_CONDITION, label=DBA_ID) #DBA_CONDITION
-dev.off()
-
-#plot(CD4_Counts_norm_contrast_analyzed, contrast= 1)
 
 
-##NOTICE!!! USING PVAL INSTEAD OF FDR:
-CD4_Counts_norm_contrast_analyzed.DB <- dba.report(CD4_Counts_norm_contrast_analyzed,th=0.05, contrast = 1,bUsePval=T, method=DBA_EDGER, bCounts=TRUE) #DBA_DESEQ
+CD4_Counts_norm_contrast_analyzed <- CD4_Good_Poor_Results_List[[1]]$dba_Counts_norm_contrast_analyzed
+CD4_DBS_sig <- CD4_Good_Poor_Results_List[[1]]$DBS_sig_report
+CD4_DBS_All <- CD4_Good_Poor_Results_List[[1]]$DBS_All_report
 
-write.csv(as.data.frame(CD4_Counts_norm_contrast_analyzed.DB),"./CD4_Counts_norm_contrast_analyzed_DBS_EDGER_TMM.csv")
+pvals <- dba.plotBox(CD4_Counts_norm_contrast_analyzed,contrast = 1,bUsePval = T ,method = DBA_EDGER)
+venn_Gain_Loss<-dba.plotVenn(CD4_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_EDGER,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
 
-venn_Gain_Loss<-dba.plotVenn(CD4_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_DESEQ2,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
-
-dba.plotVolcano(CD4_Counts_norm_contrast_analyzed,bUsePval = T,method=DBA_EDGER,fold = -log2(0.7),bLabels=F)
-
-pvals <- dba.plotBox(CD4_Counts_norm_contrast_analyzed,contrast = 1,bUsePval = T ,method = DBA_DESEQ2)
-
-#hmap <- colorRampPalette(c("red", "black", "green"))(n = 13)
-#library(RColorBrewer)
-readscores <- dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, contrast=1,bUsePval = T ,method = DBA_DESEQ2, correlations=FALSE,scale="row", colScheme = colorRampPalette(brewer.pal(10,"RdBu"))(256))
-write.csv(as.data.frame(readscores),"./CD4_Counts_norm_contrast_analyzed_readscoresHeatmap.csv")
-
-```
-
-```{r}
-###########                                   Volcano                     ############
-dba_df <- as.data.frame(dba.report(CD4_Counts_norm_contrast_analyzed,th=1, contrast = 1,bUsePval=T, method=DBA_EDGER, bCounts=TRUE))
-
-dba_df <- add_gene_names(dba_df, CD4_Counts_norm_contrast_analyzed)
-
-# Define significance thresholds
-pval_threshold <- 0.05
-fold_change_threshold <- -log2(0.7)
-
-# Create a new column to classify points based on significance
-dba_df$Significance <- with(dba_df, ifelse(p.value < pval_threshold & abs(Fold) > fold_change_threshold, "Significant", "Not Significant"))
-
-# Calculate -log10 p-value
-dba_df$negLog10Pval <- -log10(dba_df$p.value) # or use P.value if you prefer p-values over FDR
-
-
-# Cap -log10(p-value) at 5 for plotting
-dba_df$negLog10Pval_capped <- ifelse(dba_df$negLog10Pval > 5, 5, dba_df$negLog10Pval)
-# Create a new column to classify points that are capped
-dba_df$Capped <- ifelse(dba_df$negLog10Pval > 5, "Capped", "Not Capped")
-
-# Identify top significant genes
-top_genes <- dba_df[dba_df$Significance == "Significant",]
-top_genes <- top_genes[order(top_genes$p.value), ] # Order by FDR
-top_genes <- head(top_genes, 10) # Select top 10 genes
-
-
-library(ggrepel)
-# Create the volcano plot using ggplot2
-volcano_plot <- ggplot(dba_df, aes(x = Fold, y = negLog10Pval_capped, color = Significance, shape = Capped)) +
-  geom_point(alpha = 0.5) +
-  theme_minimal() +
-  scale_color_manual(values = c("Significant" = "red", "Not Significant" = "grey")) +
-  scale_shape_manual(values = c("Capped" = 17, "Not Capped" = 16)) + # Different shapes for capped points
-  geom_hline(yintercept = -log10(pval_threshold), col = "red", linetype = "dashed") +
-  geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
-  geom_text_repel(data = top_genes, aes(label = SYMBOL), size = 3) +
-  labs(title = "Volcano Plot", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
-  ylim(0, 5) +
-  annotate("text", x = max(dba_df$Fold), y = 4.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
-
-# Display the plot
-print(volcano_plot)
-
-write.csv(dba_df, "CD4_Counts_EDGER_TMMnorm_contrast_analyzed.csv")
-
-```
-
-```{r}
 #Extracting Human TF genes
 #Downloaded from AnimalTFDB4
-tf_data <- read.table("Homo_sapiens_TF.txt", header = TRUE, sep = "\t")
-dba_df_tfs <- subset(dba_df, dba_df$SYMBOL %in% tf_data$Symbol)
-write.csv(dba_df_tfs[order(dba_df_tfs$p.value,decreasing = FALSE),], "TFS_CD4_Counts_EDGER_TMMnorm_contrast_analyzed.csv")
+tf_data <- read.table("Homo_sapiens_TF_AnimalTFDB4.txt", header = TRUE, sep = "\t")
+CD4_DBS_All_TFs <- subset(CD4_DBS_All, CD4_DBS_All$SYMBOL %in% tf_data$Symbol)
+write.csv(CD4_DBS_All_TFs[order(CD4_DBS_All_TFs$p.value,decreasing = FALSE),], "./CD4_GoodvsPoor_Results/CD4_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
 
 ```
 
 ```{r}
-########################################### GSEA #################################################
+##################################### CD4 GSEA #########################################
 
-dba_df_sig <- subset(dba_df, Significance == "Significant")
-
-# Filter rows with greatest absolute Foldchange for each gene
-dba_df_sig_NoDups <- dba_df_sig %>%
+CD4_DBS_All_Volcano_Sig <- subset(CD4_DBS_All, Significance == "Significant")
+# Remove duplicates by filtering rows with greatest absolute Foldchange for each gene
+CD4_DBS_All_Volcano_Sig_NoDups <- CD4_DBS_All_Volcano_Sig %>%
   group_by(SYMBOL) %>%
   slice(which.max(abs(Fold))) %>%
   ungroup()
 
-#df_ForGSEA <- subset(dba_df_sig_NoDups, select = c(Fold,p.value,SYMBOL))
-df_ForGSEA <- subset(dba_df, select = c(Fold,p.value,SYMBOL))
+df_ForGSEA <- subset(CD4_DBS_All, select = c(Fold,p.value,SYMBOL))
 
- 
-
-#msigdb_c7 <- msigdbr(species = "Homo sapiens", category = "C7")
-#c7_list <- split(msigdb_c7$gene_symbol, msigdb_c7$gs_name)
 
 C7_Pathways <- gmtPathways("c7.all.v2023.2.Hs.symbols.gmt")
 
@@ -341,6 +249,7 @@ head(ranks)
 gene_list <- sort(ranks, decreasing = TRUE)
 barplot(gene_list)
 
+set.seed(123)
 # Perform GSEA
 fgseaRes <- fgsea(pathways = C7_Pathways,
                        stats = gene_list,
@@ -360,12 +269,16 @@ fgseaRes_CD8_csv <- fgseaRes_CD8
 fgseaRes_CD8_csv$leadingEdge <- sapply(fgseaRes_CD8_csv$leadingEdge, paste, collapse = ", ")
 
 # Optionally, save these subsets to CSV files
-write.csv(fgseaRes_CD4_csv, file = "fgseaRes_CD4_C7gmt_sig.csv", row.names = FALSE)
-write.csv(fgseaRes_CD8_csv, file = "fgseaRes_CD8_C7gmt_sig.csv", row.names = FALSE)
-            
+write.csv(fgseaRes_CD4_csv, file = "./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_fgseaRes_CD4_C7gmt_sig.csv", row.names = FALSE)
+write.csv(fgseaRes_CD8_csv, file = "./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_fgseaRes_CD8_C7gmt_sig.csv", row.names = FALSE)
+  
+
 ```
 
+
 ```{r}
+
+#All top pathways up and down regulated
 fgseaRes$Enrichment = ifelse(fgseaRes$NES > 0, "Up-regulated", "Down-regulated")
 
 topPathwaysUp <- fgseaRes[NES > 0][order(pval)][1:10,]
@@ -395,11 +308,15 @@ coord_flip() +
 labs(x="Pathway", y="Normalized Enrichment Score",
  title=header)
 
+png("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_topPathWays_GSEA_Plot.png", units="in", width=15, height=15, res=800)
+g1
+dev.off()
 
 ```
 
 
 ```{r}
+#CD4 related pathways
 #Removing not important pathways:
 fgseaRes_CD4_filt_NonImportant <- fgseaRes_CD4[-which(fgseaRes_CD4$pathway %in% fgseaRes_CD4[c(4,8,9,10,11,15,18,19),]$pathway),]
 
@@ -415,6 +332,7 @@ header = paste0("Top ",nrow(fgseaRes_CD4_top30)," (Total pathways: Up=", total_u
 colos = setNames(c("firebrick2", "dodgerblue2"),
            c("Up-regulated", "Down-regulated"))
 
+png("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_CD4Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
 ggplot(fgseaRes_CD4_top30, aes(reorder(pathway, NES), NES)) +
 geom_point( aes(fill = Enrichment, size = size), shape=21) +
 scale_fill_manual(values = colos ) +
@@ -423,12 +341,14 @@ geom_hline(yintercept = 0) +
 coord_flip() +
 labs(x="Pathway", y="Normalized Enrichment Score",
  title=header)
+dev.off()
 
 
 ```
 
 
 ```{r}
+#CD8 related pathways
 #Removing not important pathways:
 fgseaRes_CD8_filt_NonImportant <- fgseaRes_CD8[-which(fgseaRes_CD8$pathway %in% fgseaRes_CD8[c(3,7,9,14,15,16,20,22),]$pathway),]
 
@@ -444,6 +364,7 @@ header = paste0("Top ",nrow(fgseaRes_CD8_top30)," (Total pathways: Up=", total_u
 colos = setNames(c("firebrick2", "dodgerblue2"),
            c("Up-regulated", "Down-regulated"))
 
+png("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_CD8Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
 ggplot(fgseaRes_CD8_top30, aes(reorder(pathway, NES), NES)) +
 geom_point( aes(fill = Enrichment, size = size), shape=21) +
 scale_fill_manual(values = colos ) +
@@ -452,7 +373,7 @@ geom_hline(yintercept = 0) +
 coord_flip() +
 labs(x="Pathway", y="Normalized Enrichment Score",
  title=header)
-
+dev.off()
 
 ```
 
@@ -588,56 +509,7 @@ CD4_DB_DF <- as.data.frame(CD4_Counts_norm_contrast_analyzed.DB)
 CD4_DB_DF_merged <- add_gene_names(CD4_DB_DF, CD4_Counts_norm_contrast_analyzed)
 
 write.csv(CD4_DB_DF_merged,"./CD4_Counts_norm_contrast_analyzed_DBS_EDGER_TMM_Names.csv")
-```
 
-```{r}
-
-# Read the gene annotation data (replace 'annotations.gtf' with your file)
-#annotations <- rtracklayer::import('gencode.v46.annotation.gtf')
-
-# Convert to a data frame with relevant columns
-#annotations_df <- as.data.frame(annotations) %>%
-# select(seqnames, start, end, gene_name)
-
-# Step 1: Extract the data matrix from the dba object
-data_matrix <- dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, contrast=1, bUsePval=TRUE,
-                               method=DBA_DESEQ2, correlations=FALSE, scale="row")
-data_matrix <- as.data.frame(data_matrix)
-
-merged_data <- add_gene_names(data.matrix, CD4_Counts_norm_contrast_analyzed)
-
-merged_data <- subset(merged_data, select = -c(seqnames, start,end,width,strand))
-merged_data <- merged_data %>% select("SYMBOL", everything())
-#rename(merged_data,c("SYMBOL" = "Gene_name"))
-
-averaged_data <- merged_data %>%
-  group_by(SYMBOL) %>%
-  summarise(across(everything(), mean, na.rm = TRUE))
-
-averaged_data <- averaged_data %>% remove_rownames %>% column_to_rownames(var="SYMBOL")
-# Step 3: Plot the heatmap using ComplexHeatmap
-heatmap_colors <- rev(colorRampPalette(brewer.pal(10, "RdBu"))(256))
-
-heatmap_annotation_df <- data.frame(
-  Condition = factor(c("Poor","Poor", "Poor", "Poor", "Good", "Good", "Good","Good","Good")),
-  row.names = colnames(averaged_data)  # Assuming first column is SYMBOL and rest are samples
-)
-
-heatmap_annotation_colors <- list(
-  Condition = c(
-    "Poor" = "red",    # Replace with your desired color
-    "Good" = "blue"    # Replace with your desired color
-  )
-)
-
-
-pheatmap_CD4 <- pheatmap::pheatmap(as.matrix(averaged_data %>% `rownames<-`( NULL )), color = heatmap_colors,
-        show_row_names = F,cluster_rows =T, treeheight_row =0, show_column_names = F, scale="row", row_names_gp = gpar(fontsize = 0.5),annotation_col = heatmap_annotation_df, annotation_colors = heatmap_annotation_colors) 
-pheatmap_CD4
-
-heatmap_toSave_CD4 <- round(pheatmap.scale(averaged_data),2)
-heatmap_toSave_CD4 <- heatmap_toSave_CD4[pheatmap_CD4$tree_row$order, pheatmap_CD4$tree_col$order]
-write.csv(heatmap_toSave_CD4, "pheatmap_CD4.csv")
 
 ```
 
@@ -658,14 +530,14 @@ print(granges_list)
 
 
 profiles <- dba.plotProfile(CD4_Counts_norm_contrast_analyzed,sites = granges_list)#sites = CD4_Counts_norm_contrast_analyzed.DB)
-png('./CD4_DBA_PlotProfile.png', units="in", width=7, heigh=7, res=800)
+png('./CD4_DBA_PlotProfile.png', units="in", width=7, height=7, res=800)
 dba.plotProfile(profiles)
 dev.off()
 
 profiles2 <- dba.plotProfile(CD4_Counts_norm_contrast_analyzed, sites=granges_list, contrast=1, 
                 bHeatmap=TRUE, bLines=TRUE, 
                 labels=c("Good", "Poor"))
-png('./CD4_DBA_PlotProfile2.png', units="in", width=7, heigh=7, res=800)
+png('./CD4_DBA_PlotProfile2.png', units="in", width=7, height=7, res=800)
 dba.plotProfile(profiles)
 dev.off()
 ```
@@ -679,10 +551,258 @@ plot(CD4_overlap_rates, xlab="Overlapping samples", ylab="Overlapping peaks", ty
 
 
 ```{r}
-CD8_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD8.csv", "CD8", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD8_GoodvsPoor_Results/")
-#CD8_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD8.csv", "CD8", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD8_GoodvsPoor_Results/", dba_counts_RDS_File = "./CD8_GoodvsPoor_Results/CD8_GoodvsPoor_ResultsCD8_Counts.RDS")
+############################### CD8 ##################
+#CD8_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD8.csv", "CD8", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD8_GoodvsPoor_Results/")
+CD8_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD8.csv", "CD8", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD8_GoodvsPoor_Results/", dba_counts_RDS_File = "./CD8_GoodvsPoor_Results/CD8_Counts.RDS")
 
 ```
+
+
+```{r}
+
+
+CD8_Counts_norm_contrast_analyzed <- CD8_Good_Poor_Results_List[[1]]$dba_Counts_norm_contrast_analyzed
+CD8_DBS_sig <- CD8_Good_Poor_Results_List[[1]]$DBS_sig_report
+CD8_DBS_All <- CD8_Good_Poor_Results_List[[1]]$DBS_All_report
+
+pvals <- dba.plotBox(CD8_Counts_norm_contrast_analyzed,contrast = 1,bUsePval = T ,method = DBA_EDGER)
+venn_Gain_Loss<-dba.plotVenn(CD8_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_EDGER,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
+
+#Extracting Human TF genes
+#Downloaded from AnimalTFDB4
+tf_data <- read.table("Homo_sapiens_TF_AnimalTFDB4.txt", header = TRUE, sep = "\t")
+CD8_DBS_All_TFs <- subset(CD8_DBS_All, CD8_DBS_All$SYMBOL %in% tf_data$Symbol)
+write.csv(CD8_DBS_All_TFs[order(CD8_DBS_All_TFs$p.value,decreasing = FALSE),], "./CD8_GoodvsPoor_Results/CD8_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+
+```
+
+
+```{r}
+##################################### CD8 GSEA #########################################
+
+CD8_DBS_All_Volcano_Sig <- subset(CD8_DBS_All, Significance == "Significant")
+# Remove duplicates by filtering rows with greatest absolute Foldchange for each gene
+CD8_DBS_All_Volcano_Sig_NoDups <- CD8_DBS_All_Volcano_Sig %>%
+  group_by(SYMBOL) %>%
+  slice(which.max(abs(Fold))) %>%
+  ungroup()
+
+df_ForGSEA <- subset(CD8_DBS_All, select = c(Fold,p.value,SYMBOL))
+
+
+C7_Pathways <- gmtPathways("c7.all.v2023.2.Hs.symbols.gmt")
+
+# Prepare the data
+ranks <- df_ForGSEA$Fold
+names(ranks) <- df_ForGSEA$SYMBOL
+head(ranks)
+gene_list <- sort(ranks, decreasing = TRUE)
+barplot(gene_list)
+
+set.seed(123)
+# Perform GSEA
+CD8_fgseaRes <- fgsea(pathways = C7_Pathways,
+                       stats = gene_list,
+                       minSize = 15,
+                       maxSize = 1000, eps = 0)#nperm = 10000)
+
+# Create a subset where the pathway includes the substring "CD4"
+CD8_fgseaRes_CD4 <- subset(CD8_fgseaRes, grepl("CD4", pathway))
+CD8_fgseaRes_CD4 <- CD8_fgseaRes_CD4[order(CD8_fgseaRes_CD4$NES,decreasing = TRUE),]
+CD8_fgseaRes_CD4_csv <- CD8_fgseaRes_CD4
+CD8_fgseaRes_CD4_csv$leadingEdge <- sapply(CD8_fgseaRes_CD4_csv$leadingEdge, paste, collapse = ", ")
+
+# Create a subset where the pathway includes the substring "CD8"
+CD8_fgseaRes_CD8 <- subset(CD8_fgseaRes, grepl("CD8", pathway))
+CD8_fgseaRes_CD8 <- CD8_fgseaRes_CD8[order(CD8_fgseaRes_CD8$NES,decreasing = TRUE),]
+CD8_fgseaRes_CD8_csv <- CD8_fgseaRes_CD8
+CD8_fgseaRes_CD8_csv$leadingEdge <- sapply(CD8_fgseaRes_CD8_csv$leadingEdge, paste, collapse = ", ")
+
+# Optionally, save these subsets to CSV files
+write.csv(CD8_fgseaRes_CD4_csv, file = "./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_fgseaRes_CD4_C7gmt_sig.csv", row.names = FALSE)
+write.csv(CD8_fgseaRes_CD8_csv, file = "./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_fgseaRes_CD8_C7gmt_sig.csv", row.names = FALSE)
+  
+
+```
+
+
+```{r}
+
+#All top pathways up and down regulated
+CD8_fgseaRes$Enrichment = ifelse(CD8_fgseaRes$NES > 0, "Up-regulated", "Down-regulated")
+
+topPathwaysUp <- CD8_fgseaRes[NES > 0][order(pval)][1:10,]
+topPathwaysDown <- CD8_fgseaRes[NES < 0][order(pval)][1:10,]
+topPathways <- rbind(topPathwaysUp, na.omit(topPathwaysDown))
+
+# Plot top pathways
+#library(ggplot2)
+#(topPathways, aes(reorder(pathway, NES), NES)) +
+#  geom_col(aes(fill = NES > 0)) +
+#  coord_flip() +
+#  labs(x = "Pathway", y = "Normalized Enrichment Score", title = "Top GSEA Pathways") +
+#  theme_minimal()
+
+
+colos = setNames(c("firebrick2", "dodgerblue2"),
+           c("Up-regulated", "Down-regulated"))
+header = paste0("Top ",nrow(topPathways)," (Total pathways: Up=", nrow(topPathwaysUp),", Down=",  nrow(topPathwaysDown), ")")
+
+
+g1 = ggplot(topPathways, aes(reorder(pathway, NES), NES)) +
+geom_point( aes(fill = Enrichment, size = size), shape=21) +
+scale_fill_manual(values = colos ) +
+scale_size_continuous(range = c(2,10)) +
+geom_hline(yintercept = 0) +
+coord_flip() +
+labs(x="Pathway", y="Normalized Enrichment Score",
+ title=header)
+
+png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_topPathWays_GSEA_Plot.png", units="in", width=15, height=15, res=800)
+g1
+dev.off()
+
+```
+
+
+```{r}
+#CD4 related pathways
+#Removing not important pathways:
+CD8_fgseaRes_CD4_filt_NonImportant <- CD8_fgseaRes_CD4[-which(CD8_fgseaRes_CD4$pathway %in% CD8_fgseaRes_CD4[c(4,8,9,10,11,15,18,19),]$pathway),]
+
+CD8_fgseaRes_CD4_top30 = CD8_fgseaRes_CD4_filt_NonImportant[1:30,]
+CD8_fgseaRes_CD4_top30$Enrichment = ifelse(CD8_fgseaRes_CD4_top30$NES > 0, "Up-regulated", "Down-regulated")
+
+CD8_fgseaRes_CD4_top30 = rbind(head(CD8_fgseaRes_CD4_top30, n = nrow(subset(CD8_fgseaRes_CD4_top30, NES>0))),
+                tail(CD8_fgseaRes_CD4_top30, n = nrow(subset(CD8_fgseaRes_CD4_top30, NES<0)) ))
+total_up = sum(CD8_fgseaRes_CD4_top30$Enrichment == "Up-regulated")
+total_down = sum(CD8_fgseaRes_CD4_top30$Enrichment == "Down-regulated")
+header = paste0("Top ",nrow(CD8_fgseaRes_CD4_top30)," (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+
+colos = setNames(c("firebrick2", "dodgerblue2"),
+           c("Up-regulated", "Down-regulated"))
+
+png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_CD4Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
+ggplot(CD8_fgseaRes_CD4_top30, aes(reorder(pathway, NES), NES)) +
+geom_point( aes(fill = Enrichment, size = size), shape=21) +
+scale_fill_manual(values = colos ) +
+scale_size_continuous(range = c(2,10)) +
+geom_hline(yintercept = 0) +
+coord_flip() +
+labs(x="Pathway", y="Normalized Enrichment Score",
+ title=header)
+dev.off()
+
+
+```
+
+
+```{r}
+#CD8 related pathways
+#Removing not important pathways:
+CD8_fgseaRes_CD8_filt_NonImportant <- CD8_fgseaRes_CD8[-which(CD8_fgseaRes_CD8$pathway %in% CD8_fgseaRes_CD8[c(3,7,9,14,15,16,20,22),]$pathway),]
+
+CD8_fgseaRes_CD8_top30 = CD8_fgseaRes_CD8_filt_NonImportant[1:30,]
+CD8_fgseaRes_CD8_top30$Enrichment = ifelse(CD8_fgseaRes_CD8_top30$NES > 0, "Up-regulated", "Down-regulated")
+
+CD8_fgseaRes_CD8_top30 = rbind(head(CD8_fgseaRes_CD8_top30, n = nrow(subset(CD8_fgseaRes_CD8_top30, NES>0))),
+                tail(CD8_fgseaRes_CD8_top30, n = nrow(subset(CD8_fgseaRes_CD8_top30, NES<0)) ))
+total_up = sum(CD8_fgseaRes_CD8_top30$Enrichment == "Up-regulated")
+total_down = sum(CD8_fgseaRes_CD8_top30$Enrichment == "Down-regulated")
+header = paste0("Top ",nrow(CD8_fgseaRes_CD8_top30)," (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+
+colos = setNames(c("firebrick2", "dodgerblue2"),
+           c("Up-regulated", "Down-regulated"))
+
+png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_CD8Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
+ggplot(CD8_fgseaRes_CD8_top30, aes(reorder(pathway, NES), NES)) +
+geom_point( aes(fill = Enrichment, size = size), shape=21) +
+scale_fill_manual(values = colos ) +
+scale_size_continuous(range = c(2,10)) +
+geom_hline(yintercept = 0) +
+coord_flip() +
+labs(x="Pathway", y="Normalized Enrichment Score",
+ title=header)
+dev.off()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 ################################## CD8 ##########################################
@@ -697,12 +817,12 @@ CD8_samples <- read.csv("Sample_Sheet_CD8.csv")
 CD8 <- dba(sampleSheet=CD8_samples)
 CD8_Counts <- dba.count(CD8, bParallel = TRUE, score=DBA_SCORE_READS)
 
-png('./CD8_Counts_heatmap.png', units="in", width=7, heigh=7, res=800)
+png('./CD8_Counts_heatmap.png', units="in", width=7, height=7, res=800)
 dba.plotHeatmap(CD8_Counts, main = "Correlation Plot for CD8 Samples")
 #plot(CD8_Counts, main="Correlation Plot for CD8 Samples")
 dev.off()
 
-png('./CD8_counts_PCA.png', units="in", width=7, heigh=7, res=800)
+png('./CD8_counts_PCA.png', units="in", width=7, height=7, res=800)
 dba.plotPCA(CD8_Counts,DBA_CONDITION, label=c(DBA_ID))
 dev.off()
 ```
@@ -712,6 +832,104 @@ CD8_overlap_rates <- dba.overlap(CD8, mode=DBA_OLAP_RATE)
 plot(CD8_overlap_rates, xlab="Overlapping samples", ylab="Overlapping peaks", type="b")
 
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -784,5 +1002,75 @@ consensusToCount <- soGGi:::runConsensusRegions(GRangesList(myPeaks))
 
 
 
+
+```
+
+
+
+
+
+
+```{r}
+########################### Heatmap #######################################
+# Step 1: Extract the data matrix from the dba object
+data_matrix <- dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, contrast=1, bUsePval=T, th = 1,
+                               method=DBA_EDGER, correlations=FALSE, scale="row",)
+data_matrix <- as.data.frame(data_matrix)
+
+merged_data <- add_gene_names(data_matrix, CD4_Counts_norm_contrast_analyzed)
+
+merged_data <- subset(merged_data, select = -c(seqnames, start,end,width,strand))
+merged_data <- merged_data %>% select("SYMBOL", everything())
+#rename(merged_data,c("SYMBOL" = "Gene_name"))
+
+averaged_data <- merged_data %>%
+  group_by(SYMBOL) %>%
+  summarise(across(everything(), mean, na.rm = TRUE))
+
+averaged_data <- averaged_data %>% remove_rownames %>% column_to_rownames(var="SYMBOL")
+# Step 3: Plot the heatmap using ComplexHeatmap
+heatmap_colors <- rev(colorRampPalette(brewer.pal(10, "RdBu"))(256))
+
+heatmap_annotation_df <- data.frame(
+  Condition = factor(c("Poor","Poor", "Poor", "Poor", "Good", "Good", "Good","Good","Good")),
+  row.names = colnames(averaged_data)  # Assuming first column is SYMBOL and rest are samples
+)
+
+heatmap_annotation_colors <- list(
+  Condition = c(
+    "Poor" = "red",    # Replace with your desired color
+    "Good" = "blue"    # Replace with your desired color
+  )
+)
+
+
+pheatmap_CD4 <- pheatmap::pheatmap(as.matrix(averaged_data %>% `rownames<-`( NULL )),
+                                   color = heatmap_colors,
+                                   show_row_names = F,
+                                   cluster_rows = T,
+                                   treeheight_row = 0,
+                                   show_column_names = F,
+                                   cluster_cols = T,
+                                   scale="row",
+                                   row_names_gp = gpar(fontsize = 0.5),
+                                   annotation_col = heatmap_annotation_df,
+                                   annotation_colors = heatmap_annotation_colors) 
+pheatmap_CD4
+
+heatmap_toSave_CD4 <- round(pheatmap.scale(averaged_data),2)
+heatmap_toSave_CD4 <- heatmap_toSave_CD4[pheatmap_CD4$tree_row$order, pheatmap_CD4$tree_col$order]
+write.csv(heatmap_toSave_CD4, "pheatmap_CD4.csv")
+
+```
+
+
+
+
+
+```{r}
+#hmap <- colorRampPalette(c("red", "black", "green"))(n = 13)
+#library(RColorBrewer)
+readscores <- dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, contrast=1, bUsePval = T, method = DBA_EDGER, correlations=FALSE,scale="row", colScheme = colorRampPalette(brewer.pal(10,"RdBu"))(256))
+write.csv(as.data.frame(readscores),"./CD4_Counts_norm_contrast_analyzed_readscoresHeatmap.csv")
 
 ```

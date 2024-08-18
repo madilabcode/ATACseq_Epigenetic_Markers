@@ -1,0 +1,207 @@
+---
+title: "Common_TFs_BINDetect_DiffBind"
+author: "Kfir Inbal"
+date: "13 8 2024"
+output: html_document
+---
+
+```{r}
+#Load libraries:
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(ggrepel)
+```
+
+
+```{r}
+#Load tables:
+##CD4
+CD4_TOBIAS_BINDetect_Results <- read.table("D:/Kfir/ATAC-Seq/TOBIAS/Bulk_Groups/CD4/BINDetect_CD4_GoodvsPoor_JASPAR2024_CORE_non-redundant/bindetect_results.txt", header = T)
+
+CD4_DiffBind_TFs <- read.csv("D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/peak_files/CD4_GoodvsPoor_Results/CD4_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+```
+
+```{r}
+#Load tables:
+##CD8
+CD8_TOBIAS_BINDetect_Results <- read.table("D:\\Kfir\\ATAC-Seq\\TOBIAS\\Bulk_Groups\\CD8\\BINDetect_CD8_GoodvsPoor_JASPAR2024_CORE_non-redundant\\bindetect_results.txt", header = T)
+
+CD8_DiffBind_TFs <- read.csv("D:\\Kfir\\ATAC-Seq\\Bwa-mem_Macs2_Output\\peak_files\\CD8_GoodvsPoor_Results\\CD8_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+
+
+```
+
+```{r}
+#Applying generic variable names:
+#CD4
+TOBIAS_BINDetect_Results <- CD4_TOBIAS_BINDetect_Results
+DiffBind_Results_TFs <- CD4_DiffBind_TFs
+
+```
+
+```{r}
+#Applying generic variable names:
+#CD8
+TOBIAS_BINDetect_Results <- CD8_TOBIAS_BINDetect_Results
+DiffBind_Results_TFs <- CD8_DiffBind_TFs
+
+```
+
+```{r}
+TOBIAS_BINDetect_Results_separated <- TOBIAS_BINDetect_Results %>% separate_rows(name, sep = "::")
+
+names(DiffBind_Results_TFs)[names(DiffBind_Results_TFs) == 'SYMBOL'] <- 'name'
+DiffBind_Results_TFs_Folds <- subset(DiffBind_Results_TFs, select = c('name','Fold'))
+DiffBind_Results_TFs_Folds_Mean <- DiffBind_Results_TFs_Folds %>%
+  group_by(name) %>%
+  summarize(DiffBind_Mean_FC = mean(Fold))
+
+change_col <- grep("_change$", names(TOBIAS_BINDetect_Results_separated), value = TRUE)
+
+TOBIAS_BINDetect_Results_separated_Folds <- subset(TOBIAS_BINDetect_Results_separated, select = c('name',change_col))
+names(TOBIAS_BINDetect_Results_separated_Folds)[names(TOBIAS_BINDetect_Results_separated_Folds) == change_col] <- "TOBIAS_Good_Poor_FC"
+
+TOBIAS_BINDetect_Results_Mean <- TOBIAS_BINDetect_Results_separated_Folds %>%
+  group_by(name) %>%
+  summarize(TOBIAS_Mean_FC = mean(TOBIAS_Good_Poor_FC))
+
+merged_DiffBind_TOBIAS_TFs <- merge(DiffBind_Results_TFs_Folds_Mean, TOBIAS_BINDetect_Results_Mean, by = "name")
+
+# Subset rows where both fold change columns have the same sign
+Same_FC_Sign_DiffBind_TOBIAS_TFs <- merged_DiffBind_TOBIAS_TFs %>%
+  filter((DiffBind_Mean_FC > 0 & TOBIAS_Mean_FC > 0) |
+         (DiffBind_Mean_FC < 0 & TOBIAS_Mean_FC < 0))
+
+```
+
+```{r}
+####CD4
+#write.csv(Same_FC_Sign_DiffBind_TOBIAS_TFs[order(Same_FC_Sign_DiffBind_TOBIAS_TFs$TOBIAS_Mean_FC, decreasing = T),], "./CD4/CD4_Same_FC_Sign_DiffBind_TOBIAS_TFs.csv")
+
+####CD8
+write.csv(Same_FC_Sign_DiffBind_TOBIAS_TFs[order(Same_FC_Sign_DiffBind_TOBIAS_TFs$TOBIAS_Mean_FC, decreasing = T),], "./CD8/CD8_Same_FC_Sign_DiffBind_TOBIAS_TFs.csv")
+```
+
+```{r}
+Common_TFs_DiffBind_TOBIAS_FC_Filtered <- Same_FC_Sign_DiffBind_TOBIAS_TFs %>%
+  filter((abs(DiffBind_Mean_FC) > -log(0.7)) |
+         (abs(TOBIAS_Mean_FC) > -log(0.7)))
+```
+
+```{r}
+#Volcano Plot CD4
+#Remove all non-Human genes
+TOBIAS_BINDetect_Results <- TOBIAS_BINDetect_Results %>%
+  filter(grepl("^[A-Z0-9:]+$", name))
+
+
+# Define significance thresholds
+pval_threshold <- 0.05
+fold_change_threshold <- -log(0.9)
+
+# Initialize all points as Not Significant
+TOBIAS_BINDetect_Results$Significance <- "Not Significant"
+
+# Update points that are significant and have a positive change
+TOBIAS_BINDetect_Results$Significance <- with(TOBIAS_BINDetect_Results, ifelse(CD4_Good_CD4_Poor_pvalue < pval_threshold & CD4_Good_CD4_Poor_change > fold_change_threshold & sign(CD4_Good_CD4_Poor_change) == 1, "Up_CD4_Good", Significance))
+
+# Update points that are significant and have a negative change
+TOBIAS_BINDetect_Results$Significance <- with(TOBIAS_BINDetect_Results, ifelse(CD4_Good_CD4_Poor_pvalue < pval_threshold & CD4_Good_CD4_Poor_change < -fold_change_threshold & sign(CD4_Good_CD4_Poor_change) == -1, "Up_CD4_Poor", Significance))
+
+
+
+# Calculate -log10 p-value
+TOBIAS_BINDetect_Results$negLog10Pval <- -log10(TOBIAS_BINDetect_Results$CD4_Good_CD4_Poor_pvalue) # or use P.value if you prefer p-values over FDR
+Capped_th = 5
+# Cap -log10(p-value) at 5 for plotting
+TOBIAS_BINDetect_Results$negLog10Pval_capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, Capped_th, TOBIAS_BINDetect_Results$negLog10Pval)
+# Create a new column to classify points that are capped
+TOBIAS_BINDetect_Results$Capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, "Capped", "Not Capped")
+
+# Identify top significant genes
+top_genes_CD4_Good <- TOBIAS_BINDetect_Results[TOBIAS_BINDetect_Results$Significance %in% c("Up_CD4_Good"),]
+top_genes_CD4_Good <- top_genes_CD4_Good[order(top_genes_CD4_Good$CD4_Good_CD4_Poor_pvalue), ] # Order by FDR
+top_genes_CD4_Good <- head(top_genes_CD4_Good, 10) # Select top 10 genes
+
+top_genes_CD4_Poor <- TOBIAS_BINDetect_Results[TOBIAS_BINDetect_Results$Significance %in% c("Up_CD4_Poor"),]
+top_genes_CD4_Poor <- top_genes_CD4_Poor[order(top_genes_CD4_Poor$CD4_Good_CD4_Poor_pvalue), ] # Order by FDR
+top_genes_CD4_Poor <- head(top_genes_CD4_Poor, 10) # Select top 10 genes
+
+top_genes_CD4_Good_Poor <- rbind(top_genes_CD4_Good, top_genes_CD4_Poor)
+
+# Create the volcano plot using ggplot2
+volcano_plot <- ggplot(TOBIAS_BINDetect_Results, aes(x = CD4_Good_CD4_Poor_change, y = negLog10Pval, color = Significance)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  scale_color_manual(values = c("Up_CD4_Good" = "green", "Up_CD4_Poor" = "red", "Not Significant" = "grey")) +
+  geom_hline(yintercept = -log10(pval_threshold), col = "magenta", linetype = "dashed") +
+  geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
+  geom_text_repel(data = top_genes_CD4_Good_Poor, aes(label = name), size = 1.8, colour = "black") +
+  labs(title = "BINDetect MOTIFS CD4 Good vs Poor Volcano Plot", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", subtitle = "Green/Red: Significant Up in CD4_Good/CD4_Poor TFs\n(pvalue < 0.05 and abs(log2Fold) > log2(0.9))")
+  #+annotate("text", x = max(TOBIAS_BINDetect_Results$CD4_Good_CD4_Poor_change), y = 100, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+
+png("./CD4/CD4_BINDetect_Results_VolcanoPlot.png", units="in", width=9, height=8, res=800)
+print(volcano_plot)
+dev.off()
+
+```
+
+```{r}
+#Volcano Plot CD8
+#Remove all non-Human genes
+TOBIAS_BINDetect_Results <- TOBIAS_BINDetect_Results %>%
+  filter(grepl("^[A-Z0-9:]+$", name))
+
+
+# Define significance thresholds
+pval_threshold <- 0.05
+fold_change_threshold <- -log(0.95)
+
+# Initialize all points as Not Significant
+TOBIAS_BINDetect_Results$Significance <- "Not Significant"
+
+# Update points that are significant and have a positive change
+TOBIAS_BINDetect_Results$Significance <- with(TOBIAS_BINDetect_Results, ifelse(CD8_Good_CD8_Poor_pvalue < pval_threshold & CD8_Good_CD8_Poor_change > fold_change_threshold & sign(CD8_Good_CD8_Poor_change) == 1, "Up_CD8_Good", Significance))
+
+# Update points that are significant and have a negative change
+TOBIAS_BINDetect_Results$Significance <- with(TOBIAS_BINDetect_Results, ifelse(CD8_Good_CD8_Poor_pvalue < pval_threshold & CD8_Good_CD8_Poor_change < -fold_change_threshold & sign(CD8_Good_CD8_Poor_change) == -1, "Up_CD8_Poor", Significance))
+
+
+
+# Calculate -log10 p-value
+TOBIAS_BINDetect_Results$negLog10Pval <- -log10(TOBIAS_BINDetect_Results$CD8_Good_CD8_Poor_pvalue) # or use P.value if you prefer p-values over FDR
+Capped_th = 5
+# Cap -log10(p-value) at 5 for plotting
+TOBIAS_BINDetect_Results$negLog10Pval_capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, Capped_th, TOBIAS_BINDetect_Results$negLog10Pval)
+# Create a new column to classify points that are capped
+TOBIAS_BINDetect_Results$Capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, "Capped", "Not Capped")
+
+# Identify top significant genes
+top_genes_CD8_Good <- TOBIAS_BINDetect_Results[TOBIAS_BINDetect_Results$Significance %in% c("Up_CD8_Good"),]
+top_genes_CD8_Good <- top_genes_CD8_Good[order(top_genes_CD8_Good$CD8_Good_CD8_Poor_pvalue), ] # Order by FDR
+top_genes_CD8_Good <- head(top_genes_CD8_Good, 10) # Select top 10 genes
+
+top_genes_CD8_Poor <- TOBIAS_BINDetect_Results[TOBIAS_BINDetect_Results$Significance %in% c("Up_CD8_Poor"),]
+top_genes_CD8_Poor <- top_genes_CD8_Poor[order(top_genes_CD8_Poor$CD8_Good_CD8_Poor_pvalue), ] # Order by FDR
+top_genes_CD8_Poor <- head(top_genes_CD8_Poor, 10) # Select top 10 genes
+
+top_genes_CD8_Good_Poor <- rbind(top_genes_CD8_Good, top_genes_CD8_Poor)
+
+# Create the volcano plot using ggplot2
+volcano_plot <- ggplot(TOBIAS_BINDetect_Results, aes(x = CD8_Good_CD8_Poor_change, y = negLog10Pval, color = Significance)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  scale_color_manual(values = c("Up_CD8_Good" = "green", "Up_CD8_Poor" = "red", "Not Significant" = "grey")) +
+  geom_hline(yintercept = -log10(pval_threshold), col = "magenta", linetype = "dashed") +
+  geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
+  geom_text_repel(data = top_genes_CD8_Good_Poor, aes(label = name), size = 1.8, colour = "black") +
+  labs(title = "BINDetect MOTIFS CD8 Good vs Poor Volcano Plot", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", subtitle = "Green/Red: Significant Up in CD8_Good/CD8_Poor TFs\n(pvalue < 0.05 and abs(log2Fold) > log2(0.9))")
+  #+annotate("text", x = max(TOBIAS_BINDetect_Results$CD4_Good_CD4_Poor_change), y = 100, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+
+png("./CD8/CD8_BINDetect_Results_VolcanoPlot.png", units="in", width=9, height=8, res=800)
+print(volcano_plot)
+dev.off()
+
+```
+

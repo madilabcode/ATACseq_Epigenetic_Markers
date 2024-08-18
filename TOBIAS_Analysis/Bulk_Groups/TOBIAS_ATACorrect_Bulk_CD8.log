@@ -1,0 +1,229 @@
+nohup: ignoring input
+# TOBIAS 0.17.0 ATACorrect (run started 2024-08-15 00:17:09.990934)
+# Working directory: /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups
+# Command line call: TOBIAS ATACorrect --bam /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8//CD8_Good/CD8_Good_merged.bam --genome /home/kfirinbal/ATAC-seq_CovVac/Reference_Annotations/Homo_sapiens.GRCh38.dna.primary_assembly.fa --peaks /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/Peaks//CD8_Good_peak_peaks.narrowPeak --blacklist /home/kfirinbal/ATAC-seq_CovVac/ENCODE_BlackList_Regions/hg38-blacklist.v2.bed --outdir /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/ --cores 30 --split 10
+
+# ----- Input parameters -----
+# bam:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8//CD8_Good/CD8_Good_merged.bam
+# genome:	/home/kfirinbal/ATAC-seq_CovVac/Reference_Annotations/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+# peaks:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/Peaks//CD8_Good_peak_peaks.narrowPeak
+# regions_in:	None
+# regions_out:	None
+# blacklist:	/home/kfirinbal/ATAC-seq_CovVac/ENCODE_BlackList_Regions/hg38-blacklist.v2.bed
+# extend:	100
+# split_strands:	False
+# norm_off:	False
+# track_off:	[]
+# drop_chroms:	['chrM', 'chrMT', 'M', 'MT', 'Mito']
+# k_flank:	12
+# read_shift:	[4, -5]
+# bg_shift:	100
+# window:	100
+# score_mat:	DWM
+# bias_pkl:	None
+# prefix:	CD8_Good_merged
+# outdir:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect
+# cores:	30
+# split:	10
+# verbosity:	3
+
+
+# ----- Output files -----
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_uncorrected.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_bias.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_expected.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_corrected.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_atacorrect.pdf
+
+
+2024-08-15 00:17:09 (2483880) [INFO]	----- Processing input data -----
+2024-08-15 00:17:09 (2483880) [INFO]	Reading info from .bam file
+2024-08-15 00:17:10 (2483880) [INFO]	Reading info from .fasta file
+2024-08-15 00:17:10 (2483880) [INFO]	The following contigs were dropped from analysis because they were found in '--drop-chroms': ['MT']
+2024-08-15 00:17:10 (2483880) [INFO]	Processing input/output regions
+2024-08-15 00:17:13 (2483880) [STATS]	genome: 193 regions | 3099734149 bp | 100.00% coverage
+2024-08-15 00:17:13 (2483880) [STATS]	input_regions: 100390 regions | 3077324311 bp | 99.28% coverage
+2024-08-15 00:17:13 (2483880) [STATS]	output_regions: 60496 regions | 34876397 bp | 1.13% coverage
+2024-08-15 00:17:13 (2483880) [STATS]	peak_regions: 62258 regions | 22409838 bp | 0.72% coverage
+2024-08-15 00:17:13 (2483880) [STATS]	nonpeak_regions: 100390 regions | 3077324311 bp | 99.28% coverage
+2024-08-15 00:17:13 (2483880) [STATS]	blacklist_regions: 636 regions | 227162400 bp | 7.33% coverage
+
+2024-08-15 00:17:13 (2483880) [INFO]	----- Estimating normalization factors -----
+2024-08-15 00:17:13 (2483880) [INFO]	Counting reads in peak regions
+2024-08-15 00:17:14 (2483880) [INFO]	Progress: 0%
+2024-08-15 00:17:20 (2483880) [INFO]	Progress: 20%
+2024-08-15 00:17:21 (2483880) [INFO]	Progress: 70%
+2024-08-15 00:17:22 (2483880) [INFO]	Progress: 80%
+2024-08-15 00:17:23 (2483880) [INFO]	Progress: 100%
+
+2024-08-15 00:17:23 (2483880) [INFO]	Counting reads in nonpeak regions
+2024-08-15 00:17:23 (2483880) [INFO]	Progress: 0%
+2024-08-15 00:19:18 (2483880) [INFO]	Progress: 10%
+2024-08-15 00:19:31 (2483880) [INFO]	Progress: 20%
+2024-08-15 00:19:33 (2483880) [INFO]	Progress: 30%
+2024-08-15 00:19:33 (2483880) [INFO]	Progress: 40%
+2024-08-15 00:19:35 (2483880) [INFO]	Progress: 60%
+2024-08-15 00:19:38 (2483880) [INFO]	Progress: 70%
+2024-08-15 00:19:39 (2483880) [INFO]	Progress: 80%
+2024-08-15 00:19:40 (2483880) [INFO]	Progress: 90%
+2024-08-15 00:19:44 (2483880) [INFO]	Progress: 100%
+2024-08-15 00:19:44 (2483880) [STATS]	TOTAL_READS	298658707
+2024-08-15 00:19:44 (2483880) [STATS]	PEAK_READS	10515459
+2024-08-15 00:19:44 (2483880) [STATS]	NONPEAK_READS	288143248
+2024-08-15 00:19:44 (2483880) [STATS]	LIB_NORM	0.03348
+2024-08-15 00:19:44 (2483880) [STATS]	FRiP	0.03521
+2024-08-15 00:19:44 (2483880) [STATS]	CORRECTION_FACTOR:	0.95098
+
+2024-08-15 00:19:44 (2483880) [INFO]	Started estimation of sequence bias...
+2024-08-15 00:19:45 (2483880) [INFO]	Progress: 0%
+2024-08-15 00:24:32 (2483880) [INFO]	Progress: 10%
+2024-08-15 00:24:51 (2483880) [INFO]	Progress: 20%
+2024-08-15 00:24:52 (2483880) [INFO]	Progress: 30%
+2024-08-15 00:24:54 (2483880) [INFO]	Progress: 40%
+2024-08-15 00:25:00 (2483880) [INFO]	Progress: 50%
+2024-08-15 00:25:03 (2483880) [INFO]	Progress: 60%
+2024-08-15 00:25:08 (2483880) [INFO]	Progress: 70%
+2024-08-15 00:25:19 (2483880) [INFO]	Progress: 80%
+2024-08-15 00:25:35 (2483880) [INFO]	Progress: 100%
+2024-08-15 00:25:35 (2483880) [INFO]	Finalizing bias motif for scoring
+
+2024-08-15 00:25:35 (2483880) [INFO]	----- Correcting reads from .bam within output regions -----
+2024-08-15 00:25:36 (2483880) [INFO]	Correction progress: 0%
+2024-08-15 00:34:46 (2483880) [INFO]	Correction progress: 10.0%
+2024-08-15 00:35:00 (2483880) [INFO]	Correction progress: 20.0%
+2024-08-15 00:35:07 (2483880) [INFO]	Correction progress: 30.0%
+2024-08-15 00:35:08 (2483880) [INFO]	Correction progress: 40.0%
+2024-08-15 00:35:11 (2483880) [INFO]	Correction progress: 50.0%
+2024-08-15 00:35:19 (2483880) [INFO]	Correction progress: 60.0%
+2024-08-15 00:35:19 (2483880) [INFO]	Correction progress: 70.0%
+2024-08-15 00:35:49 (2483880) [INFO]	Correction progress: 80.0%
+2024-08-15 00:36:07 (2483880) [INFO]	Correction progress: 90.0%
+2024-08-15 00:36:16 (2483880) [INFO]	Correction progress: 100.0%
+2024-08-15 00:36:16 (2483880) [INFO]	Correction progress: done!
+2024-08-15 00:36:18 (2487383) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_uncorrected.bw (this might take some time)
+2024-08-15 00:36:26 (2487387) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_expected.bw (this might take some time)
+2024-08-15 00:36:26 (2487385) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_bias.bw (this might take some time)
+2024-08-15 00:36:33 (2487383) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Good/ATACorrect/CD8_Good_merged_corrected.bw (this might take some time)
+
+2024-08-15 00:36:49 (2483880) [INFO]	Verifying bias correction
+2024-08-15 00:36:49 (2483880) [STATS]	BIAS	pre-bias variance forward:	0.0002408
+2024-08-15 00:36:49 (2483880) [STATS]	BIAS	post-bias variance forward:	0.0000088
+2024-08-15 00:36:49 (2483880) [STATS]	BIAS	pre-bias variance reverse:	0.0001476
+2024-08-15 00:36:49 (2483880) [STATS]	BIAS	post-bias variance reverse:	0.0000060
+
+2024-08-15 00:36:49 (2483880) [INFO]	Finished ATACorrect run (total time elapsed: 0:19:39.634921)
+# TOBIAS 0.17.0 ATACorrect (run started 2024-08-15 00:36:51.060967)
+# Working directory: /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups
+# Command line call: TOBIAS ATACorrect --bam /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8//CD8_Poor/CD8_Poor_merged.bam --genome /home/kfirinbal/ATAC-seq_CovVac/Reference_Annotations/Homo_sapiens.GRCh38.dna.primary_assembly.fa --peaks /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/Peaks//CD8_Poor_peak_peaks.narrowPeak --blacklist /home/kfirinbal/ATAC-seq_CovVac/ENCODE_BlackList_Regions/hg38-blacklist.v2.bed --outdir /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/ --cores 30 --split 10
+
+# ----- Input parameters -----
+# bam:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8//CD8_Poor/CD8_Poor_merged.bam
+# genome:	/home/kfirinbal/ATAC-seq_CovVac/Reference_Annotations/Homo_sapiens.GRCh38.dna.primary_assembly.fa
+# peaks:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/Peaks//CD8_Poor_peak_peaks.narrowPeak
+# regions_in:	None
+# regions_out:	None
+# blacklist:	/home/kfirinbal/ATAC-seq_CovVac/ENCODE_BlackList_Regions/hg38-blacklist.v2.bed
+# extend:	100
+# split_strands:	False
+# norm_off:	False
+# track_off:	[]
+# drop_chroms:	['chrM', 'chrMT', 'M', 'MT', 'Mito']
+# k_flank:	12
+# read_shift:	[4, -5]
+# bg_shift:	100
+# window:	100
+# score_mat:	DWM
+# bias_pkl:	None
+# prefix:	CD8_Poor_merged
+# outdir:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect
+# cores:	30
+# split:	10
+# verbosity:	3
+
+
+# ----- Output files -----
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_uncorrected.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_bias.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_expected.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_corrected.bw
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_atacorrect.pdf
+
+
+2024-08-15 00:36:51 (2491568) [INFO]	----- Processing input data -----
+2024-08-15 00:36:51 (2491568) [INFO]	Reading info from .bam file
+2024-08-15 00:36:51 (2491568) [INFO]	Reading info from .fasta file
+2024-08-15 00:36:51 (2491568) [INFO]	The following contigs were dropped from analysis because they were found in '--drop-chroms': ['MT']
+2024-08-15 00:36:51 (2491568) [INFO]	Processing input/output regions
+2024-08-15 00:36:55 (2491568) [STATS]	genome: 193 regions | 3099734149 bp | 100.00% coverage
+2024-08-15 00:36:55 (2491568) [STATS]	input_regions: 109168 regions | 3071751232 bp | 99.10% coverage
+2024-08-15 00:36:55 (2491568) [STATS]	output_regions: 71581 regions | 42808813 bp | 1.38% coverage
+2024-08-15 00:36:55 (2491568) [STATS]	peak_regions: 73998 regions | 27982917 bp | 0.90% coverage
+2024-08-15 00:36:55 (2491568) [STATS]	nonpeak_regions: 109168 regions | 3071751232 bp | 99.10% coverage
+2024-08-15 00:36:55 (2491568) [STATS]	blacklist_regions: 636 regions | 227162400 bp | 7.33% coverage
+
+2024-08-15 00:36:55 (2491568) [INFO]	----- Estimating normalization factors -----
+2024-08-15 00:36:55 (2491568) [INFO]	Counting reads in peak regions
+2024-08-15 00:36:55 (2491568) [INFO]	Progress: 0%
+2024-08-15 00:37:03 (2491568) [INFO]	Progress: 40%
+2024-08-15 00:37:04 (2491568) [INFO]	Progress: 60%
+2024-08-15 00:37:04 (2491568) [INFO]	Progress: 80%
+2024-08-15 00:37:06 (2491568) [INFO]	Progress: 90%
+2024-08-15 00:37:07 (2491568) [INFO]	Progress: 100%
+
+2024-08-15 00:37:07 (2491568) [INFO]	Counting reads in nonpeak regions
+2024-08-15 00:37:07 (2491568) [INFO]	Progress: 0%
+2024-08-15 00:38:56 (2491568) [INFO]	Progress: 10%
+2024-08-15 00:39:11 (2491568) [INFO]	Progress: 20%
+2024-08-15 00:39:11 (2491568) [INFO]	Progress: 40%
+2024-08-15 00:39:12 (2491568) [INFO]	Progress: 50%
+2024-08-15 00:39:14 (2491568) [INFO]	Progress: 60%
+2024-08-15 00:39:15 (2491568) [INFO]	Progress: 70%
+2024-08-15 00:39:17 (2491568) [INFO]	Progress: 80%
+2024-08-15 00:39:18 (2491568) [INFO]	Progress: 90%
+2024-08-15 00:39:20 (2491568) [INFO]	Progress: 100%
+2024-08-15 00:39:20 (2491568) [STATS]	TOTAL_READS	282767503
+2024-08-15 00:39:20 (2491568) [STATS]	PEAK_READS	12905103
+2024-08-15 00:39:20 (2491568) [STATS]	NONPEAK_READS	269862400
+2024-08-15 00:39:20 (2491568) [STATS]	LIB_NORM	0.03536
+2024-08-15 00:39:20 (2491568) [STATS]	FRiP	0.04564
+2024-08-15 00:39:20 (2491568) [STATS]	CORRECTION_FACTOR:	0.77489
+
+2024-08-15 00:39:20 (2491568) [INFO]	Started estimation of sequence bias...
+2024-08-15 00:39:20 (2491568) [INFO]	Progress: 0%
+2024-08-15 00:43:55 (2491568) [INFO]	Progress: 10%
+2024-08-15 00:43:58 (2491568) [INFO]	Progress: 20%
+2024-08-15 00:44:04 (2491568) [INFO]	Progress: 30%
+2024-08-15 00:44:12 (2491568) [INFO]	Progress: 40%
+2024-08-15 00:44:15 (2491568) [INFO]	Progress: 50%
+2024-08-15 00:44:23 (2491568) [INFO]	Progress: 60%
+2024-08-15 00:44:26 (2491568) [INFO]	Progress: 70%
+2024-08-15 00:44:26 (2491568) [INFO]	Progress: 80%
+2024-08-15 00:44:27 (2491568) [INFO]	Progress: 90%
+2024-08-15 00:44:38 (2491568) [INFO]	Progress: 100%
+2024-08-15 00:44:38 (2491568) [INFO]	Finalizing bias motif for scoring
+
+2024-08-15 00:44:39 (2491568) [INFO]	----- Correcting reads from .bam within output regions -----
+2024-08-15 00:44:39 (2491568) [INFO]	Correction progress: 0%
+2024-08-15 00:56:00 (2491568) [INFO]	Correction progress: 10.0%
+2024-08-15 00:56:06 (2491568) [INFO]	Correction progress: 20.0%
+2024-08-15 00:56:08 (2491568) [INFO]	Correction progress: 30.0%
+2024-08-15 00:56:21 (2491568) [INFO]	Correction progress: 40.0%
+2024-08-15 00:56:22 (2491568) [INFO]	Correction progress: 50.0%
+2024-08-15 00:56:32 (2491568) [INFO]	Correction progress: 60.0%
+2024-08-15 00:56:32 (2491568) [INFO]	Correction progress: 70.0%
+2024-08-15 00:57:02 (2491568) [INFO]	Correction progress: 80.0%
+2024-08-15 00:57:30 (2491568) [INFO]	Correction progress: 90.0%
+2024-08-15 00:57:50 (2491568) [INFO]	Correction progress: 100.0%
+2024-08-15 00:57:50 (2491568) [INFO]	Correction progress: done!
+2024-08-15 00:57:54 (2494848) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_uncorrected.bw (this might take some time)
+2024-08-15 00:58:05 (2494850) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_bias.bw (this might take some time)
+2024-08-15 00:58:05 (2494852) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_expected.bw (this might take some time)
+2024-08-15 00:58:15 (2494848) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD8/CD8_Poor/ATACorrect/CD8_Poor_merged_corrected.bw (this might take some time)
+
+2024-08-15 00:58:35 (2491568) [INFO]	Verifying bias correction
+2024-08-15 00:58:35 (2491568) [STATS]	BIAS	pre-bias variance forward:	0.0002422
+2024-08-15 00:58:35 (2491568) [STATS]	BIAS	post-bias variance forward:	0.0000090
+2024-08-15 00:58:35 (2491568) [STATS]	BIAS	pre-bias variance reverse:	0.0001503
+2024-08-15 00:58:35 (2491568) [STATS]	BIAS	post-bias variance reverse:	0.0000063
+
+2024-08-15 00:58:35 (2491568) [INFO]	Finished ATACorrect run (total time elapsed: 0:21:44.698765)

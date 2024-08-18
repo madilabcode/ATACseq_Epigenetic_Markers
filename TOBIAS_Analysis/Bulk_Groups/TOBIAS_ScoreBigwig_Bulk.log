@@ -1,0 +1,95 @@
+nohup: ignoring input
+# TOBIAS 0.17.0 ScoreBigwig (run started 2024-08-13 01:19:43.229841)
+# Working directory: /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups
+# Command line call: TOBIAS ScoreBigwig --signal /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/./ATACorrect//CD4_Good_merged_corrected.bw --regions /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/Peaks/CD4_Good_peak_peaks.narrowPeak --output /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/ScoreBigWig//CD4_Good_footprints.bw --cores 30 --split 10
+
+# ----- Input parameters -----
+# signal:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/./ATACorrect//CD4_Good_merged_corrected.bw
+# output:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/ScoreBigWig//CD4_Good_footprints.bw
+# regions:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/Peaks/CD4_Good_peak_peaks.narrowPeak
+# score:	footprint
+# absolute:	False
+# extend:	100
+# smooth:	1
+# min_limit:	None
+# max_limit:	None
+# fp_min:	20
+# fp_max:	50
+# flank_min:	10
+# flank_max:	30
+# window:	100
+# cores:	30
+# split:	10
+# verbosity:	3
+
+
+# ----- Output files -----
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/ScoreBigWig//CD4_Good_footprints.bw
+
+
+2024-08-13 01:19:43 (1661524) [INFO]	Processing input files
+2024-08-13 01:19:43 (1661524) [INFO]	- Opening input cutsite bigwig
+2024-08-13 01:19:43 (1661524) [INFO]	- Getting output regions ready
+2024-08-13 01:19:44 (1661524) [INFO]	Calculating footprints in regions...
+2024-08-13 01:19:44 (1661524) [INFO]	Progress 0%
+2024-08-13 01:30:06 (1661524) [INFO]	Progress 10.0%
+2024-08-13 01:30:13 (1661524) [INFO]	Progress 20.0%
+2024-08-13 01:30:18 (1661524) [INFO]	Progress 30.0%
+2024-08-13 01:30:35 (1661524) [INFO]	Progress 40.0%
+2024-08-13 01:30:40 (1661524) [INFO]	Progress 50.0%
+2024-08-13 01:30:53 (1661524) [INFO]	Progress 60.0%
+2024-08-13 01:31:09 (1661524) [INFO]	Progress 70.0%
+2024-08-13 01:31:19 (1661524) [INFO]	Progress 80.0%
+2024-08-13 01:31:44 (1661524) [INFO]	Progress 90.0%
+2024-08-13 01:32:45 (1661524) [INFO]	Progress 100.0%
+2024-08-13 01:32:45 (1661524) [INFO]	Progress done!
+2024-08-13 01:33:01 (1661693) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Good/ScoreBigWig//CD4_Good_footprints.bw (this might take some time)
+
+2024-08-13 01:33:23 (1661524) [INFO]	Finished ScoreBigwig run (total time elapsed: 0:13:39.988086)
+# TOBIAS 0.17.0 ScoreBigwig (run started 2024-08-13 01:33:24.069306)
+# Working directory: /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups
+# Command line call: TOBIAS ScoreBigwig --signal /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/./ATACorrect//CD4_Poor_merged_corrected.bw --regions /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/Peaks/CD4_Poor_peak_peaks.narrowPeak --output /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/ScoreBigWig//CD4_Poor_footprints.bw --cores 30 --split 10
+
+# ----- Input parameters -----
+# signal:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/./ATACorrect//CD4_Poor_merged_corrected.bw
+# output:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/ScoreBigWig//CD4_Poor_footprints.bw
+# regions:	/home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/Peaks/CD4_Poor_peak_peaks.narrowPeak
+# score:	footprint
+# absolute:	False
+# extend:	100
+# smooth:	1
+# min_limit:	None
+# max_limit:	None
+# fp_min:	20
+# fp_max:	50
+# flank_min:	10
+# flank_max:	30
+# window:	100
+# cores:	30
+# split:	10
+# verbosity:	3
+
+
+# ----- Output files -----
+# /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/ScoreBigWig//CD4_Poor_footprints.bw
+
+
+2024-08-13 01:33:24 (1666824) [INFO]	Processing input files
+2024-08-13 01:33:24 (1666824) [INFO]	- Opening input cutsite bigwig
+2024-08-13 01:33:24 (1666824) [INFO]	- Getting output regions ready
+2024-08-13 01:33:24 (1666824) [INFO]	Calculating footprints in regions...
+2024-08-13 01:33:25 (1666824) [INFO]	Progress 0%
+2024-08-13 01:42:08 (1666824) [INFO]	Progress 10.0%
+2024-08-13 01:42:23 (1666824) [INFO]	Progress 20.0%
+2024-08-13 01:42:33 (1666824) [INFO]	Progress 30.0%
+2024-08-13 01:42:37 (1666824) [INFO]	Progress 40.0%
+2024-08-13 01:42:37 (1666824) [INFO]	Progress 50.0%
+2024-08-13 01:42:40 (1666824) [INFO]	Progress 60.0%
+2024-08-13 01:42:54 (1666824) [INFO]	Progress 70.0%
+2024-08-13 01:43:01 (1666824) [INFO]	Progress 80.0%
+2024-08-13 01:43:45 (1666824) [INFO]	Progress 90.0%
+2024-08-13 01:43:48 (1666824) [INFO]	Progress 100.0%
+2024-08-13 01:43:48 (1666824) [INFO]	Progress done!
+2024-08-13 01:44:02 (1666993) [INFO]	Closing /home/kfirinbal/ATAC-seq_CovVac/Bulk_Groups/CD4/CD4_Poor/ScoreBigWig//CD4_Poor_footprints.bw (this might take some time)
+
+2024-08-13 01:44:21 (1666824) [INFO]	Finished ScoreBigwig run (total time elapsed: 0:10:57.209254)

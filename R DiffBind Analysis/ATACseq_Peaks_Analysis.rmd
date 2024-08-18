@@ -446,7 +446,7 @@ library(chromVAR)
 library(SummarizedExperiment)
 library(MotifDb)
 library(GenomicAlignments)
-bamfiles <- list.files(path = "D:\\Kfir\\ATAC-Seq\\Bwa-mem_Macs2_Output", pattern = "*.bam$", full.names = TRUE)
+bamfiles <- list.files(path = "D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output", pattern = "*.bam$", full.names = TRUE)
 
 # Convert consensus peaks to GRanges object
 gr_peaks <- CD4_Counts_norm_contrast_analyzed
@@ -483,7 +483,7 @@ library(MotifDb)
 library(BSgenome.Hsapiens.UCSC.hg38)
 genome <- Hsapiens
 
-shifted.bamFile="D:/Kfir/ATAC-Seq/Bwa-mem_Macs2_Output/G08CD4_S145927_NoMT_subset.blacklist-filtered.shifted.sorted.bam"
+shifted.bamFile="D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/G08CD4_S145927_NoMT_subset.blacklist-filtered.shifted.sorted.bam"
 
 library(Rsamtools)
 bamHeader <- scanBamHeader(shifted.bamFile)

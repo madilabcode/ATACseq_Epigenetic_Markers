@@ -1,0 +1,320 @@
+nohup: ignoring input
+INFO  @ Mon, 12 Aug 2024 17:33:59: 
+# Command line: callpeak -t CD4_Good/Bulk/CD4_Good_merged.bam -f BAMPE -n CD4_Good/Bulk/Peak_Files//CD4_Good_peak -g 2701495711 --keep-dup all
+# ARGUMENTS LIST:
+# name = CD4_Good/Bulk/Peak_Files//CD4_Good_peak
+# format = BAMPE
+# ChIP-seq file = ['CD4_Good/Bulk/CD4_Good_merged.bam']
+# control file = None
+# effective genome size = 2.70e+09
+# band width = 300
+# model fold = [5, 50]
+# qvalue cutoff = 5.00e-02
+# The maximum gap between significant sites is assigned as the read length/tag size.
+# The minimum length of peaks is assigned as the predicted fragment length "d".
+# Larger dataset will be scaled towards smaller dataset.
+# Range for calculating regional lambda is: 10000 bps
+# Broad region calling is off
+# Paired-End mode is on
+ 
+INFO  @ Mon, 12 Aug 2024 17:33:59: #1 read fragment files... 
+INFO  @ Mon, 12 Aug 2024 17:33:59: #1 read treatment fragments... 
+INFO  @ Mon, 12 Aug 2024 17:34:01:  1000000 
+INFO  @ Mon, 12 Aug 2024 17:34:03:  2000000 
+INFO  @ Mon, 12 Aug 2024 17:34:05:  3000000 
+INFO  @ Mon, 12 Aug 2024 17:34:08:  4000000 
+INFO  @ Mon, 12 Aug 2024 17:34:10:  5000000 
+INFO  @ Mon, 12 Aug 2024 17:34:12:  6000000 
+INFO  @ Mon, 12 Aug 2024 17:34:14:  7000000 
+INFO  @ Mon, 12 Aug 2024 17:34:17:  8000000 
+INFO  @ Mon, 12 Aug 2024 17:34:19:  9000000 
+INFO  @ Mon, 12 Aug 2024 17:34:21:  10000000 
+INFO  @ Mon, 12 Aug 2024 17:34:23:  11000000 
+INFO  @ Mon, 12 Aug 2024 17:34:26:  12000000 
+INFO  @ Mon, 12 Aug 2024 17:34:28:  13000000 
+INFO  @ Mon, 12 Aug 2024 17:34:30:  14000000 
+INFO  @ Mon, 12 Aug 2024 17:34:32:  15000000 
+INFO  @ Mon, 12 Aug 2024 17:34:34:  16000000 
+INFO  @ Mon, 12 Aug 2024 17:34:37:  17000000 
+INFO  @ Mon, 12 Aug 2024 17:34:39:  18000000 
+INFO  @ Mon, 12 Aug 2024 17:34:41:  19000000 
+INFO  @ Mon, 12 Aug 2024 17:34:43:  20000000 
+INFO  @ Mon, 12 Aug 2024 17:34:46:  21000000 
+INFO  @ Mon, 12 Aug 2024 17:34:48:  22000000 
+INFO  @ Mon, 12 Aug 2024 17:34:50:  23000000 
+INFO  @ Mon, 12 Aug 2024 17:34:52:  24000000 
+INFO  @ Mon, 12 Aug 2024 17:34:55:  25000000 
+INFO  @ Mon, 12 Aug 2024 17:34:57:  26000000 
+INFO  @ Mon, 12 Aug 2024 17:34:59:  27000000 
+INFO  @ Mon, 12 Aug 2024 17:35:01:  28000000 
+INFO  @ Mon, 12 Aug 2024 17:35:03:  29000000 
+INFO  @ Mon, 12 Aug 2024 17:35:06:  30000000 
+INFO  @ Mon, 12 Aug 2024 17:35:08:  31000000 
+INFO  @ Mon, 12 Aug 2024 17:35:10:  32000000 
+INFO  @ Mon, 12 Aug 2024 17:35:12:  33000000 
+INFO  @ Mon, 12 Aug 2024 17:35:15:  34000000 
+INFO  @ Mon, 12 Aug 2024 17:35:17:  35000000 
+INFO  @ Mon, 12 Aug 2024 17:35:19:  36000000 
+INFO  @ Mon, 12 Aug 2024 17:35:21:  37000000 
+INFO  @ Mon, 12 Aug 2024 17:35:24:  38000000 
+INFO  @ Mon, 12 Aug 2024 17:35:26:  39000000 
+INFO  @ Mon, 12 Aug 2024 17:35:28:  40000000 
+INFO  @ Mon, 12 Aug 2024 17:35:30:  41000000 
+INFO  @ Mon, 12 Aug 2024 17:35:32:  42000000 
+INFO  @ Mon, 12 Aug 2024 17:35:35:  43000000 
+INFO  @ Mon, 12 Aug 2024 17:35:37:  44000000 
+INFO  @ Mon, 12 Aug 2024 17:35:39:  45000000 
+INFO  @ Mon, 12 Aug 2024 17:35:41:  46000000 
+INFO  @ Mon, 12 Aug 2024 17:35:44:  47000000 
+INFO  @ Mon, 12 Aug 2024 17:35:46:  48000000 
+INFO  @ Mon, 12 Aug 2024 17:35:48:  49000000 
+INFO  @ Mon, 12 Aug 2024 17:35:50:  50000000 
+INFO  @ Mon, 12 Aug 2024 17:35:53:  51000000 
+INFO  @ Mon, 12 Aug 2024 17:35:55:  52000000 
+INFO  @ Mon, 12 Aug 2024 17:35:57:  53000000 
+INFO  @ Mon, 12 Aug 2024 17:35:59:  54000000 
+INFO  @ Mon, 12 Aug 2024 17:36:02:  55000000 
+INFO  @ Mon, 12 Aug 2024 17:36:04:  56000000 
+INFO  @ Mon, 12 Aug 2024 17:36:06:  57000000 
+INFO  @ Mon, 12 Aug 2024 17:36:08:  58000000 
+INFO  @ Mon, 12 Aug 2024 17:36:10:  59000000 
+INFO  @ Mon, 12 Aug 2024 17:36:13:  60000000 
+INFO  @ Mon, 12 Aug 2024 17:36:15:  61000000 
+INFO  @ Mon, 12 Aug 2024 17:36:17:  62000000 
+INFO  @ Mon, 12 Aug 2024 17:36:19:  63000000 
+INFO  @ Mon, 12 Aug 2024 17:36:22:  64000000 
+INFO  @ Mon, 12 Aug 2024 17:36:24:  65000000 
+INFO  @ Mon, 12 Aug 2024 17:36:26:  66000000 
+INFO  @ Mon, 12 Aug 2024 17:36:28:  67000000 
+INFO  @ Mon, 12 Aug 2024 17:36:31:  68000000 
+INFO  @ Mon, 12 Aug 2024 17:36:33:  69000000 
+INFO  @ Mon, 12 Aug 2024 17:36:35:  70000000 
+INFO  @ Mon, 12 Aug 2024 17:36:37:  71000000 
+INFO  @ Mon, 12 Aug 2024 17:36:40:  72000000 
+INFO  @ Mon, 12 Aug 2024 17:36:42:  73000000 
+INFO  @ Mon, 12 Aug 2024 17:36:44:  74000000 
+INFO  @ Mon, 12 Aug 2024 17:36:46:  75000000 
+INFO  @ Mon, 12 Aug 2024 17:36:48:  76000000 
+INFO  @ Mon, 12 Aug 2024 17:36:51:  77000000 
+INFO  @ Mon, 12 Aug 2024 17:36:53:  78000000 
+INFO  @ Mon, 12 Aug 2024 17:36:55:  79000000 
+INFO  @ Mon, 12 Aug 2024 17:36:57:  80000000 
+INFO  @ Mon, 12 Aug 2024 17:37:00:  81000000 
+INFO  @ Mon, 12 Aug 2024 17:37:02:  82000000 
+INFO  @ Mon, 12 Aug 2024 17:37:04:  83000000 
+INFO  @ Mon, 12 Aug 2024 17:37:06:  84000000 
+INFO  @ Mon, 12 Aug 2024 17:37:09:  85000000 
+INFO  @ Mon, 12 Aug 2024 17:37:11:  86000000 
+INFO  @ Mon, 12 Aug 2024 17:37:13:  87000000 
+INFO  @ Mon, 12 Aug 2024 17:37:15:  88000000 
+INFO  @ Mon, 12 Aug 2024 17:37:18:  89000000 
+INFO  @ Mon, 12 Aug 2024 17:37:20:  90000000 
+INFO  @ Mon, 12 Aug 2024 17:37:22:  91000000 
+INFO  @ Mon, 12 Aug 2024 17:37:24:  92000000 
+INFO  @ Mon, 12 Aug 2024 17:37:27:  93000000 
+INFO  @ Mon, 12 Aug 2024 17:37:29:  94000000 
+INFO  @ Mon, 12 Aug 2024 17:37:31:  95000000 
+INFO  @ Mon, 12 Aug 2024 17:37:33:  96000000 
+INFO  @ Mon, 12 Aug 2024 17:37:35:  97000000 
+INFO  @ Mon, 12 Aug 2024 17:37:38:  98000000 
+INFO  @ Mon, 12 Aug 2024 17:37:40:  99000000 
+INFO  @ Mon, 12 Aug 2024 17:37:42:  100000000 
+INFO  @ Mon, 12 Aug 2024 17:37:44:  101000000 
+INFO  @ Mon, 12 Aug 2024 17:37:47:  102000000 
+INFO  @ Mon, 12 Aug 2024 17:37:49:  103000000 
+INFO  @ Mon, 12 Aug 2024 17:37:51:  104000000 
+INFO  @ Mon, 12 Aug 2024 17:37:53:  105000000 
+INFO  @ Mon, 12 Aug 2024 17:37:56:  106000000 
+INFO  @ Mon, 12 Aug 2024 17:37:58:  107000000 
+INFO  @ Mon, 12 Aug 2024 17:38:00:  108000000 
+INFO  @ Mon, 12 Aug 2024 17:38:02:  109000000 
+INFO  @ Mon, 12 Aug 2024 17:38:05:  110000000 
+INFO  @ Mon, 12 Aug 2024 17:38:07:  111000000 
+INFO  @ Mon, 12 Aug 2024 17:38:09:  112000000 
+INFO  @ Mon, 12 Aug 2024 17:38:11:  113000000 
+INFO  @ Mon, 12 Aug 2024 17:38:14:  114000000 
+INFO  @ Mon, 12 Aug 2024 17:38:16:  115000000 
+INFO  @ Mon, 12 Aug 2024 17:38:18:  116000000 
+INFO  @ Mon, 12 Aug 2024 17:38:20:  117000000 
+INFO  @ Mon, 12 Aug 2024 17:38:22:  118000000 
+INFO  @ Mon, 12 Aug 2024 17:38:25:  119000000 
+INFO  @ Mon, 12 Aug 2024 17:38:27:  120000000 
+INFO  @ Mon, 12 Aug 2024 17:38:29:  121000000 
+INFO  @ Mon, 12 Aug 2024 17:38:31:  122000000 
+INFO  @ Mon, 12 Aug 2024 17:38:34:  123000000 
+INFO  @ Mon, 12 Aug 2024 17:38:36:  124000000 
+INFO  @ Mon, 12 Aug 2024 17:38:38:  125000000 
+INFO  @ Mon, 12 Aug 2024 17:38:40:  126000000 
+INFO  @ Mon, 12 Aug 2024 17:38:43:  127000000 
+INFO  @ Mon, 12 Aug 2024 17:38:45:  128000000 
+INFO  @ Mon, 12 Aug 2024 17:38:47: 128955474 fragments have been read. 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #1 mean fragment size is determined as 147.9 bp from treatment 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #1 fragment size = 147.9 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #1  total fragments in treatment: 128955474 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #1 finished! 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #2 Build Peak Model... 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #2 Skipped... 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #3 Call peaks... 
+INFO  @ Mon, 12 Aug 2024 17:40:44: #3 Pre-compute pvalue-qvalue table... 
+INFO  @ Mon, 12 Aug 2024 17:47:25: #3 Call peaks for each chromosome... 
+INFO  @ Mon, 12 Aug 2024 17:50:45: #4 Write output xls file... CD4_Good/Bulk/Peak_Files//CD4_Good_peak_peaks.xls 
+INFO  @ Mon, 12 Aug 2024 17:50:46: #4 Write peak in narrowPeak format file... CD4_Good/Bulk/Peak_Files//CD4_Good_peak_peaks.narrowPeak 
+INFO  @ Mon, 12 Aug 2024 17:50:46: #4 Write summits bed file... CD4_Good/Bulk/Peak_Files//CD4_Good_peak_summits.bed 
+INFO  @ Mon, 12 Aug 2024 17:50:46: Done! 
+INFO  @ Mon, 12 Aug 2024 17:50:46: 
+# Command line: callpeak -t CD4_Poor/Bulk/CD4_Poor_merged.bam -f BAMPE -n CD4_Poor/Bulk/Peak_Files//CD4_Poor_peak -g 2701495711 --keep-dup all
+# ARGUMENTS LIST:
+# name = CD4_Poor/Bulk/Peak_Files//CD4_Poor_peak
+# format = BAMPE
+# ChIP-seq file = ['CD4_Poor/Bulk/CD4_Poor_merged.bam']
+# control file = None
+# effective genome size = 2.70e+09
+# band width = 300
+# model fold = [5, 50]
+# qvalue cutoff = 5.00e-02
+# The maximum gap between significant sites is assigned as the read length/tag size.
+# The minimum length of peaks is assigned as the predicted fragment length "d".
+# Larger dataset will be scaled towards smaller dataset.
+# Range for calculating regional lambda is: 10000 bps
+# Broad region calling is off
+# Paired-End mode is on
+ 
+INFO  @ Mon, 12 Aug 2024 17:50:46: #1 read fragment files... 
+INFO  @ Mon, 12 Aug 2024 17:50:46: #1 read treatment fragments... 
+INFO  @ Mon, 12 Aug 2024 17:50:49:  1000000 
+INFO  @ Mon, 12 Aug 2024 17:50:51:  2000000 
+INFO  @ Mon, 12 Aug 2024 17:50:53:  3000000 
+INFO  @ Mon, 12 Aug 2024 17:50:56:  4000000 
+INFO  @ Mon, 12 Aug 2024 17:50:58:  5000000 
+INFO  @ Mon, 12 Aug 2024 17:51:00:  6000000 
+INFO  @ Mon, 12 Aug 2024 17:51:02:  7000000 
+INFO  @ Mon, 12 Aug 2024 17:51:05:  8000000 
+INFO  @ Mon, 12 Aug 2024 17:51:07:  9000000 
+INFO  @ Mon, 12 Aug 2024 17:51:09:  10000000 
+INFO  @ Mon, 12 Aug 2024 17:51:12:  11000000 
+INFO  @ Mon, 12 Aug 2024 17:51:14:  12000000 
+INFO  @ Mon, 12 Aug 2024 17:51:16:  13000000 
+INFO  @ Mon, 12 Aug 2024 17:51:19:  14000000 
+INFO  @ Mon, 12 Aug 2024 17:51:21:  15000000 
+INFO  @ Mon, 12 Aug 2024 17:51:23:  16000000 
+INFO  @ Mon, 12 Aug 2024 17:51:25:  17000000 
+INFO  @ Mon, 12 Aug 2024 17:51:28:  18000000 
+INFO  @ Mon, 12 Aug 2024 17:51:30:  19000000 
+INFO  @ Mon, 12 Aug 2024 17:51:32:  20000000 
+INFO  @ Mon, 12 Aug 2024 17:51:35:  21000000 
+INFO  @ Mon, 12 Aug 2024 17:51:37:  22000000 
+INFO  @ Mon, 12 Aug 2024 17:51:39:  23000000 
+INFO  @ Mon, 12 Aug 2024 17:51:42:  24000000 
+INFO  @ Mon, 12 Aug 2024 17:51:44:  25000000 
+INFO  @ Mon, 12 Aug 2024 17:51:46:  26000000 
+INFO  @ Mon, 12 Aug 2024 17:51:49:  27000000 
+INFO  @ Mon, 12 Aug 2024 17:51:51:  28000000 
+INFO  @ Mon, 12 Aug 2024 17:51:53:  29000000 
+INFO  @ Mon, 12 Aug 2024 17:51:55:  30000000 
+INFO  @ Mon, 12 Aug 2024 17:51:58:  31000000 
+INFO  @ Mon, 12 Aug 2024 17:52:00:  32000000 
+INFO  @ Mon, 12 Aug 2024 17:52:02:  33000000 
+INFO  @ Mon, 12 Aug 2024 17:52:05:  34000000 
+INFO  @ Mon, 12 Aug 2024 17:52:07:  35000000 
+INFO  @ Mon, 12 Aug 2024 17:52:09:  36000000 
+INFO  @ Mon, 12 Aug 2024 17:52:12:  37000000 
+INFO  @ Mon, 12 Aug 2024 17:52:14:  38000000 
+INFO  @ Mon, 12 Aug 2024 17:52:16:  39000000 
+INFO  @ Mon, 12 Aug 2024 17:52:19:  40000000 
+INFO  @ Mon, 12 Aug 2024 17:52:21:  41000000 
+INFO  @ Mon, 12 Aug 2024 17:52:23:  42000000 
+INFO  @ Mon, 12 Aug 2024 17:52:26:  43000000 
+INFO  @ Mon, 12 Aug 2024 17:52:28:  44000000 
+INFO  @ Mon, 12 Aug 2024 17:52:30:  45000000 
+INFO  @ Mon, 12 Aug 2024 17:52:32:  46000000 
+INFO  @ Mon, 12 Aug 2024 17:52:35:  47000000 
+INFO  @ Mon, 12 Aug 2024 17:52:37:  48000000 
+INFO  @ Mon, 12 Aug 2024 17:52:39:  49000000 
+INFO  @ Mon, 12 Aug 2024 17:52:42:  50000000 
+INFO  @ Mon, 12 Aug 2024 17:52:44:  51000000 
+INFO  @ Mon, 12 Aug 2024 17:52:46:  52000000 
+INFO  @ Mon, 12 Aug 2024 17:52:49:  53000000 
+INFO  @ Mon, 12 Aug 2024 17:52:51:  54000000 
+INFO  @ Mon, 12 Aug 2024 17:52:53:  55000000 
+INFO  @ Mon, 12 Aug 2024 17:52:56:  56000000 
+INFO  @ Mon, 12 Aug 2024 17:52:58:  57000000 
+INFO  @ Mon, 12 Aug 2024 17:53:00:  58000000 
+INFO  @ Mon, 12 Aug 2024 17:53:03:  59000000 
+INFO  @ Mon, 12 Aug 2024 17:53:05:  60000000 
+INFO  @ Mon, 12 Aug 2024 17:53:07:  61000000 
+INFO  @ Mon, 12 Aug 2024 17:53:10:  62000000 
+INFO  @ Mon, 12 Aug 2024 17:53:12:  63000000 
+INFO  @ Mon, 12 Aug 2024 17:53:14:  64000000 
+INFO  @ Mon, 12 Aug 2024 17:53:16:  65000000 
+INFO  @ Mon, 12 Aug 2024 17:53:19:  66000000 
+INFO  @ Mon, 12 Aug 2024 17:53:21:  67000000 
+INFO  @ Mon, 12 Aug 2024 17:53:23:  68000000 
+INFO  @ Mon, 12 Aug 2024 17:53:26:  69000000 
+INFO  @ Mon, 12 Aug 2024 17:53:28:  70000000 
+INFO  @ Mon, 12 Aug 2024 17:53:30:  71000000 
+INFO  @ Mon, 12 Aug 2024 17:53:33:  72000000 
+INFO  @ Mon, 12 Aug 2024 17:53:35:  73000000 
+INFO  @ Mon, 12 Aug 2024 17:53:37:  74000000 
+INFO  @ Mon, 12 Aug 2024 17:53:40:  75000000 
+INFO  @ Mon, 12 Aug 2024 17:53:42:  76000000 
+INFO  @ Mon, 12 Aug 2024 17:53:44:  77000000 
+INFO  @ Mon, 12 Aug 2024 17:53:46:  78000000 
+INFO  @ Mon, 12 Aug 2024 17:53:49:  79000000 
+INFO  @ Mon, 12 Aug 2024 17:53:51:  80000000 
+INFO  @ Mon, 12 Aug 2024 17:53:53:  81000000 
+INFO  @ Mon, 12 Aug 2024 17:53:56:  82000000 
+INFO  @ Mon, 12 Aug 2024 17:53:58:  83000000 
+INFO  @ Mon, 12 Aug 2024 17:54:00:  84000000 
+INFO  @ Mon, 12 Aug 2024 17:54:03:  85000000 
+INFO  @ Mon, 12 Aug 2024 17:54:05:  86000000 
+INFO  @ Mon, 12 Aug 2024 17:54:07:  87000000 
+INFO  @ Mon, 12 Aug 2024 17:54:10:  88000000 
+INFO  @ Mon, 12 Aug 2024 17:54:12:  89000000 
+INFO  @ Mon, 12 Aug 2024 17:54:14:  90000000 
+INFO  @ Mon, 12 Aug 2024 17:54:17:  91000000 
+INFO  @ Mon, 12 Aug 2024 17:54:19:  92000000 
+INFO  @ Mon, 12 Aug 2024 17:54:21:  93000000 
+INFO  @ Mon, 12 Aug 2024 17:54:24:  94000000 
+INFO  @ Mon, 12 Aug 2024 17:54:26:  95000000 
+INFO  @ Mon, 12 Aug 2024 17:54:28:  96000000 
+INFO  @ Mon, 12 Aug 2024 17:54:30:  97000000 
+INFO  @ Mon, 12 Aug 2024 17:54:33:  98000000 
+INFO  @ Mon, 12 Aug 2024 17:54:35:  99000000 
+INFO  @ Mon, 12 Aug 2024 17:54:37:  100000000 
+INFO  @ Mon, 12 Aug 2024 17:54:40:  101000000 
+INFO  @ Mon, 12 Aug 2024 17:54:42:  102000000 
+INFO  @ Mon, 12 Aug 2024 17:54:44:  103000000 
+INFO  @ Mon, 12 Aug 2024 17:54:47:  104000000 
+INFO  @ Mon, 12 Aug 2024 17:54:49:  105000000 
+INFO  @ Mon, 12 Aug 2024 17:54:51:  106000000 
+INFO  @ Mon, 12 Aug 2024 17:54:54:  107000000 
+INFO  @ Mon, 12 Aug 2024 17:54:56:  108000000 
+INFO  @ Mon, 12 Aug 2024 17:54:58:  109000000 
+INFO  @ Mon, 12 Aug 2024 17:55:01:  110000000 
+INFO  @ Mon, 12 Aug 2024 17:55:03:  111000000 
+INFO  @ Mon, 12 Aug 2024 17:55:05:  112000000 
+INFO  @ Mon, 12 Aug 2024 17:55:07:  113000000 
+INFO  @ Mon, 12 Aug 2024 17:55:10:  114000000 
+INFO  @ Mon, 12 Aug 2024 17:55:12:  115000000 
+INFO  @ Mon, 12 Aug 2024 17:55:14:  116000000 
+INFO  @ Mon, 12 Aug 2024 17:55:17:  117000000 
+INFO  @ Mon, 12 Aug 2024 17:55:19:  118000000 
+INFO  @ Mon, 12 Aug 2024 17:55:21:  119000000 
+INFO  @ Mon, 12 Aug 2024 17:55:24:  120000000 
+INFO  @ Mon, 12 Aug 2024 17:55:26:  121000000 
+INFO  @ Mon, 12 Aug 2024 17:55:28:  122000000 
+INFO  @ Mon, 12 Aug 2024 17:55:30:  123000000 
+INFO  @ Mon, 12 Aug 2024 17:55:33: 123975177 fragments have been read. 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #1 mean fragment size is determined as 144.2 bp from treatment 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #1 fragment size = 144.2 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #1  total fragments in treatment: 123975177 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #1 finished! 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #2 Build Peak Model... 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #2 Skipped... 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #3 Call peaks... 
+INFO  @ Mon, 12 Aug 2024 17:57:24: #3 Pre-compute pvalue-qvalue table... 
+INFO  @ Mon, 12 Aug 2024 18:03:55: #3 Call peaks for each chromosome... 
+INFO  @ Mon, 12 Aug 2024 18:07:10: #4 Write output xls file... CD4_Poor/Bulk/Peak_Files//CD4_Poor_peak_peaks.xls 
+INFO  @ Mon, 12 Aug 2024 18:07:10: #4 Write peak in narrowPeak format file... CD4_Poor/Bulk/Peak_Files//CD4_Poor_peak_peaks.narrowPeak 
+INFO  @ Mon, 12 Aug 2024 18:07:10: #4 Write summits bed file... CD4_Poor/Bulk/Peak_Files//CD4_Poor_peak_summits.bed 
+INFO  @ Mon, 12 Aug 2024 18:07:11: Done! 

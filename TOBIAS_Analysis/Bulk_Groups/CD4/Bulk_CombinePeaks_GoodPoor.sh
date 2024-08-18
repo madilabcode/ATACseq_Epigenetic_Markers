@@ -1,0 +1,1 @@
+cat "/home/kfirinbal/ATAC-seq_CovVac/Groups/CD4/CD4_Good/Bulk/Peak_Files/CD4_Good_peak_peaks.narrowPeak" "/home/kfirinbal/ATAC-seq_CovVac/Groups/CD4/CD4_Poor/Bulk/Peak_Files/CD4_Poor_peak_peaks.narrowPeak" > /home/kfirinbal/ATAC-seq_CovVac/Groups/CD4/Combined_Peaks_Bulk/Bulk_Combined_CD4_Good_Poor_peaks.narrowPeak

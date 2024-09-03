@@ -111,11 +111,24 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   dba_Counts_norm_contrast_analyzed <- dba.analyze(dba_Counts_norm_contrast, method = DE_Method)
   
   png(paste0(outputdir,celltype,'_peak_counts_correlation_heatmap_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
-  dba.plotHeatmap(dba_Counts_norm_contrast_analyzed, main = "Correlation Plot for CD4 Samples")
+  dba.plotHeatmap(dba_Counts_norm_contrast_analyzed, main = paste0("Correlation Plot for ",celltype ," Samples"))
+  dev.off()
+  
+  pdf(paste0(outputdir,celltype,'_peak_counts_correlation_heatmap_',DE_Method,'_',Normalization_Method,'.pdf'), width=7, height=7)
+  dba.plotHeatmap(dba_Counts_norm_contrast_analyzed, main = paste0("Correlation Plot for ",celltype ," Samples"))
   dev.off()
   
   png(paste0(outputdir,celltype,'_peak_counts_PCA_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
-  dba.plotPCA(dba_Counts_norm_contrast_analyzed,DBA_CONDITION, label=DBA_ID)
+  dba.plotPCA(dba_Counts_norm_contrast_analyzed,DBA_CONDITION, label = DBA_ID)
+  # Add a title using grid.text
+  grid.text(paste0("PCA Plot for ",celltype ," Samples"), x = 0.5, y = 0.95, gp = gpar(fontsize = 16))
+  dev.off()
+  
+  
+  pdf(paste0(outputdir,celltype,'_peak_counts_PCA_',DE_Method,'_',Normalization_Method,'.pdf'),width=7, height=7)
+  dba.plotPCA(dba_Counts_norm_contrast_analyzed,DBA_CONDITION, label = DBA_ID)
+  # Add a title using grid.text
+  grid.text(paste0("PCA Plot for ",celltype ," Samples"), x = 0.5, y = 0.95, gp = gpar(fontsize = 16))
   dev.off()
   
   #Reporting SIGNIFICANT differential Binding Sites
@@ -172,8 +185,11 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   ylim(0, 5) +
   annotate("text", x = max(DBS_All$Fold), y = 4.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
   
-  
   png(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
+  print(volcano_plot)
+  dev.off()
+  
+  pdf(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.pdf'), width=7, height=7)
   print(volcano_plot)
   dev.off()
   
@@ -217,7 +233,7 @@ CD4_DBS_sig <- CD4_Good_Poor_Results_List[[1]]$DBS_sig_report
 CD4_DBS_All <- CD4_Good_Poor_Results_List[[1]]$DBS_All_report
 
 pvals <- dba.plotBox(CD4_Counts_norm_contrast_analyzed,contrast = 1,bUsePval = T ,method = DBA_EDGER)
-venn_Gain_Loss<-dba.plotVenn(CD4_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_EDGER,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
+venn_Gain_Loss <- dba.plotVenn(CD4_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_EDGER,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
 
 #Extracting Human TF genes
 #Downloaded from AnimalTFDB4
@@ -262,16 +278,9 @@ fgseaRes_CD4 <- fgseaRes_CD4[order(fgseaRes_CD4$NES,decreasing = TRUE),]
 fgseaRes_CD4_csv <- fgseaRes_CD4
 fgseaRes_CD4_csv$leadingEdge <- sapply(fgseaRes_CD4_csv$leadingEdge, paste, collapse = ", ")
 
-# Create a subset where the pathway includes the substring "CD8"
-fgseaRes_CD8 <- subset(fgseaRes, grepl("CD8", pathway))
-fgseaRes_CD8 <- fgseaRes_CD8[order(fgseaRes_CD8$NES,decreasing = TRUE),]
-fgseaRes_CD8_csv <- fgseaRes_CD8
-fgseaRes_CD8_csv$leadingEdge <- sapply(fgseaRes_CD8_csv$leadingEdge, paste, collapse = ", ")
-
 # Optionally, save these subsets to CSV files
 write.csv(fgseaRes_CD4_csv, file = "./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_fgseaRes_CD4_C7gmt_sig.csv", row.names = FALSE)
-write.csv(fgseaRes_CD8_csv, file = "./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_fgseaRes_CD8_C7gmt_sig.csv", row.names = FALSE)
-  
+
 
 ```
 
@@ -281,9 +290,9 @@ write.csv(fgseaRes_CD8_csv, file = "./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment
 #All top pathways up and down regulated
 fgseaRes$Enrichment = ifelse(fgseaRes$NES > 0, "Up-regulated", "Down-regulated")
 
-topPathwaysUp <- fgseaRes[NES > 0][order(pval)][1:10,]
-topPathwaysDown <- fgseaRes[NES < 0][order(pval)][1:10,]
-topPathways <- rbind(topPathwaysUp, na.omit(topPathwaysDown))
+topPathwaysUp <- na.omit(fgseaRes[NES > 0][order(pval)][1:10,])
+topPathwaysDown <- na.omit(fgseaRes[NES < 0][order(pval)][1:10,])
+topPathways <- rbind(topPathwaysUp, topPathwaysDown)
 
 # Plot top pathways
 #library(ggplot2)
@@ -296,7 +305,7 @@ topPathways <- rbind(topPathwaysUp, na.omit(topPathwaysDown))
 
 colos = setNames(c("firebrick2", "dodgerblue2"),
            c("Up-regulated", "Down-regulated"))
-header = paste0("Top ",nrow(topPathways)," (Total pathways: Up=", nrow(topPathwaysUp),", Down=",  nrow(topPathwaysDown), ")")
+header = paste0("Top ",nrow(topPathways)," Enriched Pathways In CD4 Experiment (Total pathways: Up=", nrow(topPathwaysUp),", Down=",  nrow(topPathwaysDown), ")")
 
 
 g1 = ggplot(topPathways, aes(reorder(pathway, NES), NES)) +
@@ -312,6 +321,10 @@ png("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_topPathWays_GSEA_Plot.png", un
 g1
 dev.off()
 
+
+pdf("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_topPathWays_GSEA_Plot.pdf", width=15, height=15)
+g1
+dev.off()
 ```
 
 
@@ -327,7 +340,7 @@ fgseaRes_CD4_top30 = rbind(head(fgseaRes_CD4_top30, n = nrow(subset(fgseaRes_CD4
                 tail(fgseaRes_CD4_top30, n = nrow(subset(fgseaRes_CD4_top30, NES<0)) ))
 total_up = sum(fgseaRes_CD4_top30$Enrichment == "Up-regulated")
 total_down = sum(fgseaRes_CD4_top30$Enrichment == "Down-regulated")
-header = paste0("Top ",nrow(fgseaRes_CD4_top30)," (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+header = paste0("Top ",nrow(fgseaRes_CD4_top30)," Enriched CD4 related Pathways In CD4 Experiment (Total pathways: Up=", total_up,", Down=",  total_down, ")")
 
 colos = setNames(c("firebrick2", "dodgerblue2"),
            c("Up-regulated", "Down-regulated"))
@@ -344,28 +357,8 @@ labs(x="Pathway", y="Normalized Enrichment Score",
 dev.off()
 
 
-```
-
-
-```{r}
-#CD8 related pathways
-#Removing not important pathways:
-fgseaRes_CD8_filt_NonImportant <- fgseaRes_CD8[-which(fgseaRes_CD8$pathway %in% fgseaRes_CD8[c(3,7,9,14,15,16,20,22),]$pathway),]
-
-fgseaRes_CD8_top30 = fgseaRes_CD8_filt_NonImportant[1:30,]
-fgseaRes_CD8_top30$Enrichment = ifelse(fgseaRes_CD8_top30$NES > 0, "Up-regulated", "Down-regulated")
-
-fgseaRes_CD8_top30 = rbind(head(fgseaRes_CD8_top30, n = nrow(subset(fgseaRes_CD8_top30, NES>0))),
-                tail(fgseaRes_CD8_top30, n = nrow(subset(fgseaRes_CD8_top30, NES<0)) ))
-total_up = sum(fgseaRes_CD8_top30$Enrichment == "Up-regulated")
-total_down = sum(fgseaRes_CD8_top30$Enrichment == "Down-regulated")
-header = paste0("Top ",nrow(fgseaRes_CD8_top30)," (Total pathways: Up=", total_up,", Down=",  total_down, ")")
-
-colos = setNames(c("firebrick2", "dodgerblue2"),
-           c("Up-regulated", "Down-regulated"))
-
-png("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_CD8Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
-ggplot(fgseaRes_CD8_top30, aes(reorder(pathway, NES), NES)) +
+pdf("./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_CD4Pathways_top30_GSEA_Plot.pdf", width=15, height=15)
+ggplot(fgseaRes_CD4_top30, aes(reorder(pathway, NES), NES)) +
 geom_point( aes(fill = Enrichment, size = size), shape=21) +
 scale_fill_manual(values = colos ) +
 scale_size_continuous(range = c(2,10)) +
@@ -375,7 +368,12 @@ labs(x="Pathway", y="Normalized Enrichment Score",
  title=header)
 dev.off()
 
+
+
 ```
+
+
+
 
 
 
@@ -606,12 +604,6 @@ CD8_fgseaRes <- fgsea(pathways = C7_Pathways,
                        minSize = 15,
                        maxSize = 1000, eps = 0)#nperm = 10000)
 
-# Create a subset where the pathway includes the substring "CD4"
-CD8_fgseaRes_CD4 <- subset(CD8_fgseaRes, grepl("CD4", pathway))
-CD8_fgseaRes_CD4 <- CD8_fgseaRes_CD4[order(CD8_fgseaRes_CD4$NES,decreasing = TRUE),]
-CD8_fgseaRes_CD4_csv <- CD8_fgseaRes_CD4
-CD8_fgseaRes_CD4_csv$leadingEdge <- sapply(CD8_fgseaRes_CD4_csv$leadingEdge, paste, collapse = ", ")
-
 # Create a subset where the pathway includes the substring "CD8"
 CD8_fgseaRes_CD8 <- subset(CD8_fgseaRes, grepl("CD8", pathway))
 CD8_fgseaRes_CD8 <- CD8_fgseaRes_CD8[order(CD8_fgseaRes_CD8$NES,decreasing = TRUE),]
@@ -619,7 +611,6 @@ CD8_fgseaRes_CD8_csv <- CD8_fgseaRes_CD8
 CD8_fgseaRes_CD8_csv$leadingEdge <- sapply(CD8_fgseaRes_CD8_csv$leadingEdge, paste, collapse = ", ")
 
 # Optionally, save these subsets to CSV files
-write.csv(CD8_fgseaRes_CD4_csv, file = "./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_fgseaRes_CD4_C7gmt_sig.csv", row.names = FALSE)
 write.csv(CD8_fgseaRes_CD8_csv, file = "./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_fgseaRes_CD8_C7gmt_sig.csv", row.names = FALSE)
   
 
@@ -631,9 +622,9 @@ write.csv(CD8_fgseaRes_CD8_csv, file = "./CD8_GoodvsPoor_Results/GSEA/CD8_Experi
 #All top pathways up and down regulated
 CD8_fgseaRes$Enrichment = ifelse(CD8_fgseaRes$NES > 0, "Up-regulated", "Down-regulated")
 
-topPathwaysUp <- CD8_fgseaRes[NES > 0][order(pval)][1:10,]
-topPathwaysDown <- CD8_fgseaRes[NES < 0][order(pval)][1:10,]
-topPathways <- rbind(topPathwaysUp, na.omit(topPathwaysDown))
+topPathwaysUp <- na.omit(CD8_fgseaRes[NES > 0][order(pval)][1:10,])
+topPathwaysDown <- na.omit(CD8_fgseaRes[NES < 0][order(pval)][1:10,])
+topPathways <- rbind(topPathwaysUp, topPathwaysDown)
 
 # Plot top pathways
 #library(ggplot2)
@@ -646,7 +637,7 @@ topPathways <- rbind(topPathwaysUp, na.omit(topPathwaysDown))
 
 colos = setNames(c("firebrick2", "dodgerblue2"),
            c("Up-regulated", "Down-regulated"))
-header = paste0("Top ",nrow(topPathways)," (Total pathways: Up=", nrow(topPathwaysUp),", Down=",  nrow(topPathwaysDown), ")")
+header =  paste0("Top ",nrow(topPathways)," Enriched Pathways In CD8 Experiment (Total pathways: Up=", nrow(topPathwaysUp),", Down=",  nrow(topPathwaysDown), ")")
 
 
 g1 = ggplot(topPathways, aes(reorder(pathway, NES), NES)) +
@@ -658,43 +649,15 @@ coord_flip() +
 labs(x="Pathway", y="Normalized Enrichment Score",
  title=header)
 
-png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_topPathWays_GSEA_Plot.png", units="in", width=15, height=15, res=800)
+png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_topPathWays_GSEA_Plot.png", units="in", width=18, height=18, res=800)
 g1
 dev.off()
-
-```
-
-
-```{r}
-#CD4 related pathways
-#Removing not important pathways:
-CD8_fgseaRes_CD4_filt_NonImportant <- CD8_fgseaRes_CD4[-which(CD8_fgseaRes_CD4$pathway %in% CD8_fgseaRes_CD4[c(4,8,9,10,11,15,18,19),]$pathway),]
-
-CD8_fgseaRes_CD4_top30 = CD8_fgseaRes_CD4_filt_NonImportant[1:30,]
-CD8_fgseaRes_CD4_top30$Enrichment = ifelse(CD8_fgseaRes_CD4_top30$NES > 0, "Up-regulated", "Down-regulated")
-
-CD8_fgseaRes_CD4_top30 = rbind(head(CD8_fgseaRes_CD4_top30, n = nrow(subset(CD8_fgseaRes_CD4_top30, NES>0))),
-                tail(CD8_fgseaRes_CD4_top30, n = nrow(subset(CD8_fgseaRes_CD4_top30, NES<0)) ))
-total_up = sum(CD8_fgseaRes_CD4_top30$Enrichment == "Up-regulated")
-total_down = sum(CD8_fgseaRes_CD4_top30$Enrichment == "Down-regulated")
-header = paste0("Top ",nrow(CD8_fgseaRes_CD4_top30)," (Total pathways: Up=", total_up,", Down=",  total_down, ")")
-
-colos = setNames(c("firebrick2", "dodgerblue2"),
-           c("Up-regulated", "Down-regulated"))
-
-png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_CD4Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
-ggplot(CD8_fgseaRes_CD4_top30, aes(reorder(pathway, NES), NES)) +
-geom_point( aes(fill = Enrichment, size = size), shape=21) +
-scale_fill_manual(values = colos ) +
-scale_size_continuous(range = c(2,10)) +
-geom_hline(yintercept = 0) +
-coord_flip() +
-labs(x="Pathway", y="Normalized Enrichment Score",
- title=header)
+pdf("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_topPathWays_GSEA_Plot.pdf", width=18, height=18)
+g1
 dev.off()
-
-
 ```
+
+
 
 
 ```{r}
@@ -709,12 +672,23 @@ CD8_fgseaRes_CD8_top30 = rbind(head(CD8_fgseaRes_CD8_top30, n = nrow(subset(CD8_
                 tail(CD8_fgseaRes_CD8_top30, n = nrow(subset(CD8_fgseaRes_CD8_top30, NES<0)) ))
 total_up = sum(CD8_fgseaRes_CD8_top30$Enrichment == "Up-regulated")
 total_down = sum(CD8_fgseaRes_CD8_top30$Enrichment == "Down-regulated")
-header = paste0("Top ",nrow(CD8_fgseaRes_CD8_top30)," (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+header = paste0("Top ",nrow(CD8_fgseaRes_CD8_top30)," Enriched CD8 related Pathways In CD8 Experiment (Total pathways: Up=", total_up,", Down=",  total_down, ")")
 
 colos = setNames(c("firebrick2", "dodgerblue2"),
            c("Up-regulated", "Down-regulated"))
 
 png("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_CD8Pathways_top30_GSEA_Plot.png", units="in", width=15, height=15, res=800)
+ggplot(CD8_fgseaRes_CD8_top30, aes(reorder(pathway, NES), NES)) +
+geom_point( aes(fill = Enrichment, size = size), shape=21) +
+scale_fill_manual(values = colos ) +
+scale_size_continuous(range = c(2,10)) +
+geom_hline(yintercept = 0) +
+coord_flip() +
+labs(x="Pathway", y="Normalized Enrichment Score",
+ title=header)
+dev.off()
+
+pdf("./CD8_GoodvsPoor_Results/GSEA/CD8_Experiment_CD8Pathways_top30_GSEA_Plot.pdf", width=15, height=15)
 ggplot(CD8_fgseaRes_CD8_top30, aes(reorder(pathway, NES), NES)) +
 geom_point( aes(fill = Enrichment, size = size), shape=21) +
 scale_fill_manual(values = colos ) +

@@ -19,7 +19,7 @@ library(ggrepel)
 ##CD4
 CD4_TOBIAS_BINDetect_Results <- read.table("D:/Kfir/ATAC-Seq/TOBIAS/Bulk_Groups/CD4/BINDetect_CD4_GoodvsPoor_JASPAR2024_CORE_non-redundant/bindetect_results.txt", header = T)
 
-CD4_DiffBind_TFs <- read.csv("D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/peak_files/CD4_GoodvsPoor_Results/CD4_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+CD4_DiffBind_TFs <- read.csv("D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/peak_files/CD4_GoodvsPoor_Results/CD4_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DARs_edgeRGLM_TMM.csv")
 ```
 
 ```{r}
@@ -27,7 +27,7 @@ CD4_DiffBind_TFs <- read.csv("D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2
 ##CD8
 CD8_TOBIAS_BINDetect_Results <- read.table("D:\\Kfir\\ATAC-Seq\\TOBIAS\\Bulk_Groups\\CD8\\BINDetect_CD8_GoodvsPoor_JASPAR2024_CORE_non-redundant\\bindetect_results.txt", header = T)
 
-CD8_DiffBind_TFs <- read.csv("D:\\Kfir\\ATAC-Seq\\Bwa-mem_Macs2_Output\\peak_files\\CD8_GoodvsPoor_Results\\CD8_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+CD8_DiffBind_TFs <- read.csv("D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\CD8_GoodvsPoor_Results\\CD8_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DARs_edgeRGLM_TMM.csv")
 
 
 ```
@@ -98,7 +98,7 @@ TOBIAS_BINDetect_Results <- TOBIAS_BINDetect_Results %>%
 
 # Define significance thresholds
 pval_threshold <- 0.05
-fold_change_threshold <- -log(0.9)
+fold_change_threshold <- -log(0.95) #-log(0.9)
 
 # Initialize all points as Not Significant
 TOBIAS_BINDetect_Results$Significance <- "Not Significant"
@@ -118,6 +118,8 @@ Capped_th = 5
 TOBIAS_BINDetect_Results$negLog10Pval_capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, Capped_th, TOBIAS_BINDetect_Results$negLog10Pval)
 # Create a new column to classify points that are capped
 TOBIAS_BINDetect_Results$Capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, "Capped", "Not Capped")
+CD4_DBTFs_All <- TOBIAS_BINDetect_Results
+write.csv(CD4_DBTFs_All, ".//Overlap_Results//CD4_DBTFs_All_For_Volcano_Plot.csv")
 
 # Identify top significant genes
 top_genes_CD4_Good <- TOBIAS_BINDetect_Results[TOBIAS_BINDetect_Results$Significance %in% c("Up_CD4_Good"),]
@@ -138,12 +140,19 @@ volcano_plot <- ggplot(TOBIAS_BINDetect_Results, aes(x = CD4_Good_CD4_Poor_chang
   geom_hline(yintercept = -log10(pval_threshold), col = "magenta", linetype = "dashed") +
   geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
   geom_text_repel(data = top_genes_CD4_Good_Poor, aes(label = name), size = 1.8, colour = "black") +
-  labs(title = "BINDetect MOTIFS CD4 Good vs Poor Volcano Plot", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", subtitle = "Green/Red: Significant Up in CD4_Good/CD4_Poor TFs\n(pvalue < 0.05 and abs(log2Fold) > log2(0.9))")
+  labs(title = "Volcano Plot of Differential Transcription Factor Binding in CD4 Samples: Good vs Poor Responders", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", subtitle = "Green/Red: Significant Up in CD4_Good/CD4_Poor TFs\n(pvalue < 0.05 and abs(log2Fold) > log2(0.95))")
   #+annotate("text", x = max(TOBIAS_BINDetect_Results$CD4_Good_CD4_Poor_change), y = 100, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+
+
+pdf("./CD4/CD4_BINDetect_Results_VolcanoPlot.pdf", width=9, height=9)
+print(volcano_plot)
+dev.off()
 
 png("./CD4/CD4_BINDetect_Results_VolcanoPlot.png", units="in", width=9, height=8, res=800)
 print(volcano_plot)
 dev.off()
+
+
 
 ```
 
@@ -156,7 +165,7 @@ TOBIAS_BINDetect_Results <- TOBIAS_BINDetect_Results %>%
 
 # Define significance thresholds
 pval_threshold <- 0.05
-fold_change_threshold <- -log(0.95)
+fold_change_threshold <- -log(0.95) #-log(0.9)
 
 # Initialize all points as Not Significant
 TOBIAS_BINDetect_Results$Significance <- "Not Significant"
@@ -176,6 +185,8 @@ Capped_th = 5
 TOBIAS_BINDetect_Results$negLog10Pval_capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, Capped_th, TOBIAS_BINDetect_Results$negLog10Pval)
 # Create a new column to classify points that are capped
 TOBIAS_BINDetect_Results$Capped <- ifelse(TOBIAS_BINDetect_Results$negLog10Pval > Capped_th, "Capped", "Not Capped")
+CD8_DBTFs_All <- TOBIAS_BINDetect_Results
+write.csv(CD8_DBTFs_All, ".//Overlap_Results//CD8_DBTFs_All_For_Volcano_Plot.csv")
 
 # Identify top significant genes
 top_genes_CD8_Good <- TOBIAS_BINDetect_Results[TOBIAS_BINDetect_Results$Significance %in% c("Up_CD8_Good"),]
@@ -196,12 +207,215 @@ volcano_plot <- ggplot(TOBIAS_BINDetect_Results, aes(x = CD8_Good_CD8_Poor_chang
   geom_hline(yintercept = -log10(pval_threshold), col = "magenta", linetype = "dashed") +
   geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
   geom_text_repel(data = top_genes_CD8_Good_Poor, aes(label = name), size = 1.8, colour = "black") +
-  labs(title = "BINDetect MOTIFS CD8 Good vs Poor Volcano Plot", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", subtitle = "Green/Red: Significant Up in CD8_Good/CD8_Poor TFs\n(pvalue < 0.05 and abs(log2Fold) > log2(0.9))")
+  labs(title = "Volcano Plot of Differential Transcription Factor Binding in CD8 Samples: Good vs Poor Responders", x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", subtitle = "Green/Red: Significant Up in CD8_Good/CD8_Poor TFs\n(pvalue < 0.05 and abs(log2Fold) > log2(0.95))")
   #+annotate("text", x = max(TOBIAS_BINDetect_Results$CD4_Good_CD4_Poor_change), y = 100, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
 
 png("./CD8/CD8_BINDetect_Results_VolcanoPlot.png", units="in", width=9, height=8, res=800)
 print(volcano_plot)
 dev.off()
 
+pdf("./CD8/CD8_BINDetect_Results_VolcanoPlot.pdf", width=9, height=8)
+print(volcano_plot)
+dev.off()
+
 ```
+
+
+```{r}
+################################### CD8 vs CD4 Results Overlap ###############################
+
+library(ggvenn)
+library(tidyverse)
+library(stats)
+library(pheatmap)
+library(RColorBrewer)
+#Defining Universe:
+
+CD4_TOBIAS_BINDetect_Results <- read.csv("D:\\Kfir\\ATAC-Seq\\TOBIAS_DiffBind_Integration\\CD4_DBTFs_All_For_Volcano_Plot.csv", header = T, row.names = "X")
+#Remove all non-Human genes
+CD4_TOBIAS_BINDetect_Results <- CD4_TOBIAS_BINDetect_Results %>%
+  filter(grepl("^[A-Z0-9:]+$", name))
+#Separate gene names that have two names separated by ::
+CD4_DBTFs_All <- CD4_TOBIAS_BINDetect_Results %>% separate_rows(name, sep = "::")
+
+
+
+CD8_TOBIAS_BINDetect_Results <- read.csv("D:\\Kfir\\ATAC-Seq\\TOBIAS_DiffBind_Integration\\CD8_DBTFs_All_For_Volcano_Plot.csv", header = T, row.names = "X")
+#Remove all non-Human genes
+CD8_TOBIAS_BINDetect_Results <- CD8_TOBIAS_BINDetect_Results %>%
+  filter(grepl("^[A-Z0-9:]+$", name))
+#Separate gene names that have two names separated by ::
+CD8_DBTFs_All <- CD8_TOBIAS_BINDetect_Results %>% separate_rows(name, sep = "::")
+
+
+universe = length(unique(c(CD4_DBTFs_All$name, CD8_DBTFs_All$name)))
+
+
+#Sig 
+
+CD4_DBTFs_Sig <- subset(CD4_DBTFs_All, Significance != "Not Significant")
+ 
+CD8_DBTFs_Sig <- subset(CD8_DBTFs_All, Significance != "Not Significant")
+ 
+
+#Up venn
+CD4_DBTFs_UP <- CD4_DBTFs_Sig[CD4_DBTFs_Sig$CD4_Good_CD4_Poor_change > 0, ]
+CD8_DBTFs_UP <- CD8_DBTFs_Sig[CD8_DBTFs_Sig$CD8_Good_CD8_Poor_change > 0, ]
+
+UP_GGVENN <- ggvenn(list("CD4_UP" = CD4_DBTFs_UP$name, "CD8_UP" = CD8_DBTFs_UP$name), fill_color = c("#0073C2FF", "#EFC000FF"),stroke_size = 0.5, set_name_size = 4) + ggtitle("Common Up Regulated DBTFs Between CD4 and CD8 Cells") + theme(plot.title = element_text(hjust = 0.5))
+
+
+#UP Significance
+q_UP = length(intersect(CD4_DBTFs_UP$name, CD8_DBTFs_UP$name)) # overlap
+m_UP = length(unique(CD4_DBTFs_UP$name)) # number of CD4 upregulated genes
+n_UP = universe - m_UP # remaining genes not in CD4 upregulated set
+k_UP = length(unique(CD8_DBTFs_UP$name)) # number of CD8 upregulated genes
+
+p_value_UP <- 1 - phyper(q_UP - 1, m_UP, n_UP,k_UP)
+
+
+
+#Add asterisk to ggvenn plot
+# Define a variable for the significance label
+significance_label <- ""
+
+# Conditional assignment based on p-value thresholds
+if (p_value_UP < 0.0001) {
+  significance_label <- "****"
+} else if (p_value_UP < 0.001) {
+  significance_label <- "***"
+} else if (p_value_UP < 0.01) {
+  significance_label <- "**"
+} else if (p_value_UP < 0.05) {
+  significance_label <- "*"
+}
+
+# Add the significance label to the plot if it exists
+if (significance_label != "") {
+  UP_GGVENN <- UP_GGVENN + 
+    annotate("text", x = 0, y = 1, label = significance_label, size = 5, color = "red")
+}
+
+pdf(".//Overlap_Results//VennDiagram_DBTFs_UP_CD4vsCD8_Experiments.pdf", width=7, height=7)
+UP_GGVENN
+dev.off()
+png(".//Overlap_Results//VennDiagram_DBTFs_UP_CD4vsCD8_Experiments.png", units="in", res = 800 , width=7, height=7)
+UP_GGVENN
+dev.off()
+
+#Creating dataframe with the UP common genes and their logFC values
+CD4_CD8_UP_Common <- intersect(CD4_DBTFs_UP$name, CD8_DBTFs_UP$name)
+CD4_UP_common_genes <- subset(CD4_DBTFs_UP, CD4_DBTFs_UP$name %in% CD4_CD8_UP_Common) %>%
+  group_by(name) %>%
+  summarise(CD4_avgLogFC = mean(CD4_Good_CD4_Poor_change))
+CD8_UP_common_genes <- subset(CD8_DBTFs_UP, CD8_DBTFs_UP$name %in% CD4_CD8_UP_Common) %>%
+  group_by(name) %>%
+  summarise(CD8_avgLogFC = mean(CD8_Good_CD8_Poor_change))
+
+CD4_CD8_LogFC_UP <- merge(CD4_UP_common_genes, CD8_UP_common_genes, by = "name")
+write.csv(CD4_CD8_LogFC_UP, ".//Overlap_Results//CD4_CD8_DBTFs_UP_LogFC_Common_DBTFs.csv")
+
+
+
+
+#DOWN VENN
+CD4_DBTFs_DOWN <- CD4_DBTFs_Sig[CD4_DBTFs_Sig$CD4_Good_CD4_Poor_change < 0, ]
+CD8_DBTFs_DOWN <- CD8_DBTFs_Sig[CD8_DBTFs_Sig$CD8_Good_CD8_Poor_change < 0, ]
+
+DOWN_GGVENN <- ggvenn(list("CD4_DOWN" = CD4_DBTFs_DOWN$name, "CD8_DOWN" = CD8_DBTFs_DOWN$name), fill_color = c("#0073C2FF", "#EFC000FF"),stroke_size = 0.5, set_name_size = 4) + ggtitle("Common Down Regulated DBTFs Between CD4 and CD8 Cells") + theme(plot.title = element_text(hjust = 0.5))
+
+#DOWN Significance
+q_DOWN = length(intersect(CD4_DBTFs_DOWN$name, CD8_DBTFs_DOWN$name)) # overlap
+m_DOWN = length(unique(CD4_DBTFs_DOWN$name)) # number of CD4 upregulated genes
+n_DOWN = universe - m_DOWN # remaining genes not in CD4 upregulated set
+k_DOWN = length(unique(CD8_DBTFs_DOWN$name)) # number of CD8 upregulated genes
+
+p_value_DOWN <- 1 - phyper(q_DOWN - 1, m_DOWN, n_DOWN,k_DOWN)
+
+
+
+#Add asterisk to ggvenn plot
+# Define a variable for the significance label
+significance_label <- ""
+
+# Conditional assignment based on p-value thresholds
+if (p_value_DOWN < 0.0001) {
+  significance_label <- "****"
+} else if (p_value_DOWN < 0.001) {
+  significance_label <- "***"
+} else if (p_value_DOWN < 0.01) {
+  significance_label <- "**"
+} else if (p_value_DOWN < 0.05) {
+  significance_label <- "*"
+}
+
+# Add the significance label to the plot if it exists
+if (significance_label != "") {
+  DOWN_GGVENN <- DOWN_GGVENN + 
+    annotate("text", x = 0, y = 1, label = significance_label, size = 5, color = "red")
+}
+
+pdf(".//Overlap_Results//VennDiagram_DBTFs_DOWN_CD4vsCD8_Experiments.pdf", width=7, height=7)
+DOWN_GGVENN
+dev.off()
+png(".//Overlap_Results//VennDiagram_DBTFs_DOWN_CD4vsCD8_Experiments.png", units="in", res = 800, width=7, height=7)
+DOWN_GGVENN
+dev.off()
+
+#Creating dataframe with the DOWN common genes and their logFC values
+CD4_CD8_DOWN_Common <- intersect(CD4_DBTFs_DOWN$name, CD8_DBTFs_DOWN$name)
+CD4_DOWN_common_genes <- subset(CD4_DBTFs_DOWN, CD4_DBTFs_DOWN$name %in% CD4_CD8_DOWN_Common) %>%
+  group_by(name) %>%
+  summarise(CD4_avgLogFC = mean(CD4_Good_CD4_Poor_change))
+CD8_DOWN_common_genes <- subset(CD8_DBTFs_DOWN, CD8_DBTFs_DOWN$name %in% CD4_CD8_DOWN_Common) %>%
+  group_by(name) %>%
+  summarise(CD8_avgLogFC = mean(CD8_Good_CD8_Poor_change))
+
+CD4_CD8_LogFC_DOWN <- merge(CD4_DOWN_common_genes, CD8_DOWN_common_genes, by = "name")
+write.csv(CD4_CD8_LogFC_DOWN, ".//Overlap_Results//CD4_CD8_DBTFs_DOWN_LogFC_Common_DBTFs.csv")
+
+
+
+#HEATMAP of COMMON GENES IN GENERAL
+common_genes_vector <- intersect(CD4_DBTFs_Sig$name, CD8_DBTFs_Sig$name)
+
+CD4_common_genes <- subset(CD4_DBTFs_Sig, CD4_DBTFs_Sig$name %in% common_genes_vector) %>%
+  group_by(name) %>%
+  summarise(CD4_avgLogFC = mean(CD4_Good_CD4_Poor_change))
+CD8_common_genes <- subset(CD8_DBTFs_Sig, CD8_DBTFs_Sig$name %in% common_genes_vector) %>%
+  group_by(name) %>%
+  summarise(CD8_avgLogFC = mean(CD8_Good_CD8_Poor_change))
+
+
+CD4_CD8_Common_General_LogFC <- merge(CD4_common_genes, CD8_common_genes, by = "name")
+
+#First column to rownames:
+CD4_CD8_Common_General_LogFC <- CD4_CD8_Common_General_LogFC %>% remove_rownames %>% column_to_rownames(var="name")
+
+CD4_CD8_LogFC_Heatmap_Output <- pheatmap(CD4_CD8_Common_General_LogFC, scale = "none",
+         cluster_rows = T,cutree_rows = 2, treeheight_row = 0,border_color = NA, cellwidth = 150,
+         clustering_distance_rows = "euclidean", fontsize_row = 2,
+         cluster_cols = FALSE, show_rownames = F,
+         main = "LogFC of Good vs Poor Heatmap for Common DBTF Gene Names between CD4 and CD8 Experiments", 
+         color = rev(colorRampPalette(brewer.pal(10, "RdBu"))(256)))
+
+pdf(".//Overlap_Results//Heatmap_Common_DBTFs_CD4vsCD8.pdf", width=12, height=12)
+CD4_CD8_LogFC_Heatmap_Output
+dev.off()
+
+
+png(".//Overlap_Results//Heatmap_Common_DBTFs_CD4vsCD8.png",units="in", res = 800, width=12, height=12)
+CD4_CD8_LogFC_Heatmap_Output
+dev.off()
+
+write.csv(CD4_CD8_Common_General_LogFC[CD4_CD8_LogFC_Heatmap_Output$tree_row$order, ], ".//Overlap_Results//CD4_CD8_HEATMAP_LogFC_DBTFs_General_Common_DBTFs.csv")
+```
+
+
+
+
+
+
+
+
 

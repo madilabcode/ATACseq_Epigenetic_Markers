@@ -24,6 +24,7 @@ library(fgsea)
 library(enrichplot)
 library(msigdbr)
 library(ggrepel)
+library('biomaRt')
 
 ```
 
@@ -86,6 +87,66 @@ add_gene_names <- function(df_to_add_gene_names, dba_object) {
 
   return(DF_merged)
 }
+
+
+
+add_GREAT_gene_names <- function(dba_object,celltype) {
+  ### RECREATING PLOTS USING GREAT ###
+  #Regions input for GREAT:
+  dba_object$seqnames <- paste0("chr", dba_object$seqnames)
+  dba_Regions <- subset(dba_object, select = c(seqnames,start,end))
+  
+  # Create a new column 'Region_Name' with values 'Region1', 'Region2', etc.
+  dba_Regions$Region_Name <- paste("Region", seq_len(nrow(dba_Regions)), sep="")
+  dba_object$Region <- paste("Region", seq_len(nrow(dba_object)), sep="")
+  
+  write.table(dba_Regions,  paste0("D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT\\Peaks\\Input_For_GREAT\\DiffBind\\",celltype,"_Regions_DiffBind_For_Great.bed"), col.names = F, row.names = F, quote = F)
+  
+  #Adding GREAT region-gene associations
+  if (celltype == "CD4") {
+    GREAT_Associations <- read.table("D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT\\Peaks\\GREAT_Output\\DiffBind\\CD4\\DiffBind_CD4_singleNearestGene_1000kb_GREAT4.0.4-voEp0U-hg38-all-region.txt", header=FALSE, sep="\t", stringsAsFactors=FALSE)
+  } else if (celltype == "CD8") {
+    GREAT_Associations <- read.table("D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT\\Peaks\\GREAT_Output\\DiffBind\\CD8\\DiffBind_CD8_singleNearestGene_1000kb_GREAT4.0.4-voEp0U-hg38-all-region.txt", header=FALSE, sep="\t", stringsAsFactors=FALSE)
+  }
+  
+  # Rename columns if necessary
+  colnames(GREAT_Associations) <- c("Region", "GREAT_SYMBOL")
+  
+  GREAT_Associations <- GREAT_Associations %>%
+    # Replace "NONE" with NA for easier handling
+    mutate(GREAT_SYMBOL = ifelse(grepl("NONE", GREAT_SYMBOL), "NONE", GREAT_SYMBOL)) %>%
+    separate(GREAT_SYMBOL, into = c("GREAT_SYMBOL", "Distance"), sep = " \\(", fill = "right", extra = "merge") %>%
+    mutate(Distance = gsub("\\)", "", Distance))  # Remove the closing parenthesis
+  
+  GREAT_Associations <- na.omit(GREAT_Associations)
+  
+  # Filter out gene IDs starting with "ENSG"
+  ensg_ids <- GREAT_Associations$GREAT_SYMBOL[grepl("^ENSG", GREAT_Associations$GREAT_SYMBOL)]
+  
+  mart <- useDataset("hsapiens_gene_ensembl", useMart("ensembl"))
+  
+  gene_symbols <- getBM(filters = "ensembl_gene_id",
+                  attributes = c("ensembl_gene_id","hgnc_symbol"),
+                  values = ensg_ids,
+                  mart = mart)
+  
+  # Merge the gene symbols back into your original table
+  GREAT_Associations <- merge(GREAT_Associations, gene_symbols, by.x = "GREAT_SYMBOL", by.y = "ensembl_gene_id", all.x = TRUE)
+  
+  # If needed, replace the ENSG IDs with symbols
+  GREAT_Associations$GREAT_SYMBOL <- ifelse(is.na(GREAT_Associations$hgnc_symbol) | GREAT_Associations$hgnc_symbol == "", GREAT_Associations$GREAT_SYMBOL, GREAT_Associations$hgnc_symbol)
+  
+  GREAT_Associations$hgnc_symbol <- NULL
+  
+  #X <- GREAT_Associations
+  #View(X)
+  
+  dba_object <- merge(dba_object, GREAT_Associations, by = "Region")
+  
+  dba_object$Region <- NULL
+  
+  return(dba_object)
+}
 ```
 
 ```{r}
@@ -134,23 +195,23 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   #Reporting SIGNIFICANT differential Binding Sites
   DBS_sig <- dba.report(dba_Counts_norm_contrast_analyzed,th = pval_th, contrast = 1,bUsePval=usePval, method=DE_Method, bCounts=TRUE)
   
-  write.csv(as.data.frame(DBS_sig),paste0(outputdir,celltype,'_Sig_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
+  write.csv(as.data.frame(DBS_sig),paste0(outputdir,celltype,'_Sig_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
   
   
   DBS_sig <- add_gene_names(DBS_sig, dba_Counts_norm_contrast_analyzed)
   
-  write.csv(DBS_sig, paste0(outputdir,celltype,'_Genes_Sig_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
+  write.csv(DBS_sig, paste0(outputdir,celltype,'_Genes_Sig_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
   
   #########       Volcano plot
   
   #All differential binding sites
   DBS_All <- as.data.frame(dba.report(dba_Counts_norm_contrast_analyzed, th = 1, contrast = 1, bUsePval=usePval, method=DE_Method, bCounts=TRUE))
   
-  write.csv(DBS_All, paste0(outputdir,celltype,'_ALL_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
+  write.csv(DBS_All, paste0(outputdir,celltype,'_ALL_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
   
   DBS_All <- add_gene_names(DBS_All, dba_Counts_norm_contrast_analyzed)
   
-  write.csv(DBS_All, paste0(outputdir,celltype,'_Genes_ALL_Counts_norm_contrast_analyzed_DBS',DE_Method,'_',Normalization_Method,'.csv'))
+  write.csv(DBS_All, paste0(outputdir,celltype,'_Genes_ALL_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
   
   # Define significance thresholds
   pval_threshold <- pval_th
@@ -181,15 +242,15 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
   geom_hline(yintercept = -log10(pval_threshold), col = "red", linetype = "dashed") +
   geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
   geom_text_repel(data = top_genes, aes(label = SYMBOL), size = 3) +
-  labs(title = paste0("Volcano Plot Of ",celltype," - ", group1," vs ", group2, " DBS (Approximated DEG)"), x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
+  labs(title = paste0("Volcano Plot Of Differential Chromatin Accessibility Sites in ",celltype," Samples: ", group1," vs ", group2, " Responders"), x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
   ylim(0, 5) +
   annotate("text", x = max(DBS_All$Fold), y = 4.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
   
-  png(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
+  png(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=9, height=9, res=800)
   print(volcano_plot)
   dev.off()
   
-  pdf(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.pdf'), width=7, height=7)
+  pdf(paste0(outputdir,celltype,'_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.pdf'), width=9, height=9)
   print(volcano_plot)
   dev.off()
   
@@ -202,6 +263,407 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
 
 
 ```
+
+
+
+
+```{r}
+
+
+ATAC_Seq_DBS_GREAT_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group2, DE_Method = DBA_EDGER, Normalization_Method = DBA_NORM_TMM, usePval = F, pval_th = 0.01, FC_th = -log(0.7), Capped_th = 5, outputdir = "./", dba_counts_RDS_File = "") {
+  
+  if (dba_counts_RDS_File == "") {
+    # Load the sample sheet
+    sampleSheet_data <- read.csv(Sample_Sheet_csv_file)
+    
+    # Initialize the dba object with the sample sheet
+    dba <- dba(sampleSheet=sampleSheet_data) 
+    dba_blklst <- dba.blacklist(dba) 
+    dba_Counts <- dba.count(dba_blklst) #bParallel = TRUE, score=DBA_SCORE_READS, summits=75) 
+    saveRDS(dba_Counts,file = paste0(outputdir, celltype, "_Counts.RDS"))
+  } else {
+    dba_Counts <- readRDS(dba_counts_RDS_File)
+  }
+  
+  dba_Counts_norm <- dba.normalize(dba_Counts, method = DE_Method, normalize = Normalization_Method) 
+  dba_Counts_norm_contrast <- dba.contrast(dba_Counts_norm, contrast = c("Condition", group1, group2))
+  dba_Counts_norm_contrast_analyzed <- dba.analyze(dba_Counts_norm_contrast, method = DE_Method)
+  
+  png(paste0(outputdir,celltype,'_peak_counts_correlation_heatmap_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
+  dba.plotHeatmap(dba_Counts_norm_contrast_analyzed, main = paste0("Correlation Plot for ",celltype ," Samples"))
+  dev.off()
+  
+  pdf(paste0(outputdir,celltype,'_peak_counts_correlation_heatmap_',DE_Method,'_',Normalization_Method,'.pdf'), width=7, height=7)
+  dba.plotHeatmap(dba_Counts_norm_contrast_analyzed, main = paste0("Correlation Plot for ",celltype ," Samples"))
+  dev.off()
+  
+  png(paste0(outputdir,celltype,'_peak_counts_PCA_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=7, height=7, res=800)
+  dba.plotPCA(dba_Counts_norm_contrast_analyzed,DBA_CONDITION, label = DBA_ID)
+  # Add a title using grid.text
+  grid.text(paste0("PCA Plot for ",celltype ," Samples"), x = 0.5, y = 0.95, gp = gpar(fontsize = 16))
+  dev.off()
+  
+  
+  pdf(paste0(outputdir,celltype,'_peak_counts_PCA_',DE_Method,'_',Normalization_Method,'.pdf'),width=7, height=7)
+  dba.plotPCA(dba_Counts_norm_contrast_analyzed,DBA_CONDITION, label = DBA_ID)
+  # Add a title using grid.text
+  grid.text(paste0("PCA Plot for ",celltype ," Samples"), x = 0.5, y = 0.95, gp = gpar(fontsize = 16))
+  dev.off()
+  
+  #Reporting SIGNIFICANT differential Binding Sites
+  DBS_sig <- dba.report(dba_Counts_norm_contrast_analyzed,th = pval_th, contrast = 1,bUsePval=usePval, method=DE_Method, bCounts=TRUE)
+  
+  write.csv(as.data.frame(DBS_sig),paste0(outputdir,celltype,'_Sig_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
+  
+  
+  DBS_sig <- add_GREAT_gene_names(as.data.frame(DBS_sig), celltype)
+  
+  write.csv(DBS_sig, paste0(outputdir,celltype,'_GREAT_Genes_Sig_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
+  
+  #########       Volcano plot
+  
+  #All differential binding sites
+  DBS_All <- as.data.frame(dba.report(dba_Counts_norm_contrast_analyzed, th = 1, contrast = 1, bUsePval=usePval, method=DE_Method, bCounts=TRUE))
+  
+  write.csv(DBS_All, paste0(outputdir,celltype,'_ALL_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
+  
+  DBS_All <- add_GREAT_gene_names(as.data.frame(DBS_All), celltype)
+  
+  write.csv(DBS_All, paste0(outputdir,celltype,'_GREAT_Genes_ALL_Counts_norm_contrast_analyzed_DARs_',DE_Method,'_',Normalization_Method,'.csv'))
+  
+  # Define significance thresholds
+  pval_threshold <- pval_th
+  fold_change_threshold <- FC_th
+  
+  # Create a new column to classify points based on significance
+  DBS_All$Significance <- with(DBS_All, ifelse(p.value < pval_threshold & abs(Fold) > fold_change_threshold, "Significant", "Not Significant"))
+  
+  # Calculate -log10 p-value
+  DBS_All$negLog10Pval <- -log10(DBS_All$p.value) # or use P.value if you prefer p-values over FDR
+  
+  # Cap -log10(p-value) at 5 for plotting
+  DBS_All$negLog10Pval_capped <- ifelse(DBS_All$negLog10Pval > Capped_th, Capped_th, DBS_All$negLog10Pval)
+  # Create a new column to classify points that are capped
+  DBS_All$Capped <- ifelse(DBS_All$negLog10Pval > Capped_th, "Capped", "Not Capped")
+  
+  # Identify top significant genes
+  top_genes <- DBS_All[DBS_All$Significance == "Significant",]
+  top_genes <- top_genes[order(top_genes$p.value), ] # Order by FDR
+  top_genes <- head(top_genes, 10) # Select top 10 genes
+  
+  # Create the volcano plot using ggplot2
+  volcano_plot <- ggplot(DBS_All, aes(x = Fold, y = negLog10Pval_capped, color = Significance, shape = Capped)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  scale_color_manual(values = c("Significant" = "red", "Not Significant" = "grey")) +
+  scale_shape_manual(values = c("Capped" = 17, "Not Capped" = 16)) + # Different shapes for capped points
+  geom_hline(yintercept = -log10(pval_threshold), col = "red", linetype = "dashed") +
+  geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
+  geom_text_repel(data = top_genes, aes(label = GREAT_SYMBOL), size = 3) +
+  labs(title = paste0("Volcano Plot Of Differential Chromatin Accessibility Sites in ",celltype," Samples: ", group1," vs ", group2, " Responders"), x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
+  ylim(0, 5) +
+  annotate("text", x = max(DBS_All$Fold), y = 4.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+  
+  png(paste0(outputdir,celltype,'_GREAT_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.png'), units="in", width=9, height=9, res=800)
+  print(volcano_plot)
+  dev.off()
+  
+  pdf(paste0(outputdir,celltype,'_GREAT_Volcano_Plot_',DE_Method,'_',Normalization_Method,'.pdf'), width=9, height=9)
+  print(volcano_plot)
+  dev.off()
+  
+  #Immune related genes volcano plot
+  ##IMMPORT
+  # Load necessary libraries
+  
+  # Define the path where your .txt files are stored
+  path_to_files <- "D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/peak_files/Immune-Related_Genes_ImmPort"
+  
+  # Get a list of all .txt files in the folder
+  gene_list_files <- list.files(path = path_to_files, pattern = "\\.txt$", full.names = TRUE)
+  
+  # Initialize an empty data frame to store all data
+  all_gene_lists <- data.frame()
+  
+  # Loop through each file and read it
+  for (file in gene_list_files) {
+    # Read the file into a data frame
+    file_data <- read.table(file, header = TRUE)
+    
+    # Bind this data to the combined data frame
+    all_gene_lists <- rbind(all_gene_lists, file_data)
+  }
+  
+  # Extract the Symbol column and remove duplicates (if any)
+  immune_gene_symbols <- unique(all_gene_lists$Symbol)
+  
+  immune_gene_vector <- immune_gene_symbols
+  
+  DBS_ImmuneSystem <- subset(DBS_All, DBS_All$GREAT_SYMBOL %in% immune_gene_vector)
+  write.csv(DBS_ImmuneSystem, paste0(outputdir,celltype,"_DARs_ImmuneSystemRelatedGenes.csv"))
+  
+  # Identify top significant genes
+  top_genes <- DBS_ImmuneSystem[DBS_ImmuneSystem$Significance == "Significant",]
+  top_genes <- top_genes[order(top_genes$p.value), ] # Order by FDR
+  top_genes <- head(top_genes, 10) # Select top 10 genes
+  
+  # Define significance thresholds
+  pval_threshold <- 0.05
+  fold_change_threshold <- -log(0.7)
+  
+  
+  # Create the volcano plot using ggplot2
+  ImmuneRelated_volcano_plot <- ggplot(DBS_ImmuneSystem, aes(x = Fold, y = negLog10Pval_capped, color = Significance, shape = Capped)) +
+  geom_point(alpha = 0.5) +
+  theme_minimal() +
+  scale_color_manual(values = c("Significant" = "red", "Not Significant" = "grey")) +
+  scale_shape_manual(values = c("Capped" = 17, "Not Capped" = 16)) + # Different shapes for capped points
+  geom_hline(yintercept = -log10(pval_threshold), col = "red", linetype = "dashed") +
+  geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
+  geom_text_repel(data = top_genes, aes(label = GREAT_SYMBOL), size = 3) +
+  labs(title = paste0("Volcano Plot of Immune-Related Differential Chromatin Accessibility Sites in ",celltype," Samples"), x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
+  ylim(0, 3) +
+  annotate("text", x = max(DBS_ImmuneSystem$Fold), y = 2.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+  
+  png(paste0(outputdir,celltype,"_ImmuneRelatedGenes_VolcanoPlot_edgeRGLM_TMM.png"), units = "in", width = 9, height = 9, res = 800)
+  print(ImmuneRelated_volcano_plot)
+  dev.off()
+  pdf(paste0(outputdir,celltype,"_ImmuneRelatedGenes_VolcanoPlot_edgeRGLM_TMM.pdf"), width=9, height=9)
+  print(ImmuneRelated_volcano_plot)
+  dev.off()
+
+  #Extracting Human TF genes
+  #Downloaded from AnimalTFDB4
+  tf_data <- read.table("Homo_sapiens_TF_AnimalTFDB4.txt", header = TRUE, sep = "\t")
+  DBS_All_TFs <- subset(DBS_All, DBS_All$GREAT_SYMBOL %in% tf_data$Symbol)
+  write.csv(DBS_All_TFs[order(DBS_All_TFs$p.value,decreasing = FALSE),], paste0(outputdir,celltype,"_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DARs_edgeRGLM_TMM.csv"))
+  
+  ##################################### GSEA #########################################
+
+  DBS_All_Volcano_Sig <- subset(DBS_All, Significance == "Significant")
+  # Remove duplicates by filtering rows with greatest absolute Foldchange for each gene
+  DBS_All_Volcano_Sig_NoDups <- DBS_All_Volcano_Sig %>%
+    group_by(GREAT_SYMBOL) %>%
+    slice(which.max(abs(Fold))) %>%
+    ungroup()
+  
+  df_ForGSEA <- subset(DBS_All, select = c(Fold, p.value, GREAT_SYMBOL))
+  
+  C7_Pathways <- gmtPathways("c7.all.v2023.2.Hs.symbols.gmt")
+  HALLMARK_Pathways <- gmtPathways("h.all.v2024.1.Hs.symbols.gmt")
+  KEGG_Medicus_Pathways <- gmtPathways("c2.cp.kegg_medicus.v2024.1.Hs.symbols.gmt")
+  #CHOOSE PATHWAYS:
+  #pathways <- C7_Pathways
+  #pathways <- HALLMARK_Pathways
+  # Prepare the data
+  ranks <- df_ForGSEA$Fold
+  names(ranks) <- df_ForGSEA$GREAT_SYMBOL
+  head(ranks)
+  gene_list <- sort(ranks, decreasing = TRUE)
+  barplot(gene_list)
+  
+  set.seed(123)
+  # Perform GSEA
+  fgseaRes_C7 <- fgsea(pathways = C7_Pathways,
+                         stats = gene_list,
+                         minSize = 15,
+                         maxSize = 1000, eps = 0)#nperm = 10000)
+  
+  fgseaRes_C7 <- fgseaRes_C7[order(fgseaRes_C7$NES,decreasing = TRUE),]
+  
+  # Making the dataframe suitable for csv (adding commas between genes in the leadingEdge column) 
+  fgseaRes_C7_csv <- fgseaRes_C7
+  fgseaRes_C7_csv$leadingEdge <- sapply(fgseaRes_C7_csv$leadingEdge, paste, collapse = ", ")
+  write.csv(fgseaRes_C7_csv, file = paste0(outputdir,"/GSEA/",celltype,"_Experiment_fgsea_All_Results_C7gmt.csv"), row.names = FALSE)
+  
+  fgseaRes_HALLMARK <- fgsea(pathways = HALLMARK_Pathways,
+                       stats = gene_list,
+                       minSize = 15,
+                       maxSize = 1000, eps = 0)#nperm = 10000)
+  
+  fgseaRes_HALLMARK <- fgseaRes_HALLMARK[order(fgseaRes_HALLMARK$NES,decreasing = TRUE),]
+  
+  # Making the dataframe suitable for csv (adding commas between genes in the leadingEdge column) 
+  fgseaRes_HALLMARK_csv <- fgseaRes_HALLMARK
+  fgseaRes_HALLMARK_csv$leadingEdge <- sapply(fgseaRes_HALLMARK_csv$leadingEdge, paste, collapse = ", ")
+  write.csv(fgseaRes_HALLMARK_csv, file = paste0(outputdir,"/GSEA/",celltype,"_Experiment_fgsea_All_Results_HALLMARKgmt.csv"), row.names = FALSE)
+   
+  fgseaRes_KEGG_Medicus <- fgsea(pathways = KEGG_Medicus_Pathways,
+                     stats = gene_list,
+                     minSize = 15,
+                     maxSize = 1000, eps = 0)#nperm = 10000)
+  
+  fgseaRes_KEGG_Medicus <- fgseaRes_KEGG_Medicus[order(fgseaRes_KEGG_Medicus$NES,decreasing = TRUE),]
+  
+  # Making the dataframe suitable for csv (adding commas between genes in the leadingEdge column) 
+  fgseaRes_KEGG_Medicus_csv <- fgseaRes_KEGG_Medicus
+  fgseaRes_KEGG_Medicus_csv$leadingEdge <- sapply(fgseaRes_KEGG_Medicus_csv$leadingEdge, paste, collapse = ", ")
+  write.csv(fgseaRes_KEGG_Medicus_csv, file = paste0(outputdir,"/GSEA/",celltype,"_Experiment_fgsea_All_Results_KEGG_Medicus_gmt.csv"), row.names = FALSE)
+  
+
+  # Create a subset where the pathway includes the substring 'celltype'
+  fgseaRes_C7_Subset <- subset(fgseaRes_C7, grepl(celltype, pathway))
+  fgseaRes_C7_Subset <- fgseaRes_C7_Subset[order(fgseaRes_C7_Subset$NES,decreasing = TRUE),]
+  
+  # Making the dataframe suitable for csv (adding commas between genes in the leadingEdge column) 
+  fgseaRes_C7_Subset_csv <- fgseaRes_C7_Subset
+  fgseaRes_C7_Subset_csv$leadingEdge <- sapply(fgseaRes_C7_Subset_csv$leadingEdge, paste, collapse = ", ")
+  
+  
+  # Save these to CSV files
+  write.csv(fgseaRes_C7_Subset_csv, file = paste0(outputdir,"/GSEA/",celltype,"_Experiment_fgseaRes_",celltype,"_C7gmt_sig.csv"), row.names = FALSE)
+
+  
+  
+  #################C7 plotting
+  
+  #CD4 related pathways
+  #Removing not important pathways:
+  #fgseaRes_C7_Subset_filt_NonImportant <- fgseaRes_C7_Subset
+  if (celltype == "CD4") {
+    fgseaRes_C7_Subset_filt_NonImportant <- fgseaRes_C7_Subset[-which(fgseaRes_C7_Subset$pathway %in% c("GSE7219_UNSTIM_VS_LPS_AND_ANTI_CD40_STIM_NIK_NFKB2_KO_DC_UP","GSE40068_CXCR5POS_BCL6POS_TFH_VS_CXCR5NEG_BCL6NEG_CD4_TCELL_DN","GSE10325_LUPUS_CD4_TCELL_VS_LUPUS_BCELL_UP","GSE10325_CD4_TCELL_VS_BCELL_UP","GSE37301_CD4_TCELL_VS_GRANULOCYTE_MONOCYTE_PROGENITOR_DN","GSE10325_CD4_TCELL_VS_MYELOID_UP","GSE22601_IMMATURE_CD4_SINGLE_POSITIVE_VS_DOUBLE_POSITIVE_THYMOCYTE_DN","GSE11057_EFF_MEM_VS_CENT_MEM_CD4_TCELL_DN","GSE22886_NAIVE_CD4_TCELL_VS_DC_UP","GSE43863_DAY6_EFF_VS_DAY150_MEM_TFH_CD4_TCELL_DN","GSE28726_ACT_CD4_TCELL_VS_ACT_VA24NEG_NKTCELL_DN","GSE1460_INTRATHYMIC_T_PROGENITOR_VS_CD4_THYMOCYTE_DN","GSE22886_NAIVE_CD4_TCELL_VS_MONOCYTE_UP","GSE17974_0H_VS_12H_IN_VITRO_ACT_CD4_TCELL_UP","GSE11057_PBMC_VS_MEM_CD4_TCELL_DN","GSE39820_CTRL_VS_IL1B_IL6_IL23A_CD4_TCELL_UP","GSE39820_CTRL_VS_IL1B_IL6_CD4_TCELL_UP","GSE39820_CTRL_VS_IL1B_IL6_CD4_TCELL_DN","GSE21670_UNTREATED_VS_TGFB_TREATED_CD4_TCELL_DN","GSE21379_TFH_VS_NON_TFH_CD4_TCELL_UP","GSE40274_FOXP3_VS_FOXP3_AND_XBP1_TRANSDUCED_ACTIVATED_CD4_TCELL_DN","GSE40274_CTRL_VS_FOXP3_TRANSDUCED_ACTIVATED_CD4_TCELL_DN","GSE7460_CD8_TCELL_VS_CD4_TCELL_ACT_DN","GSE39820_CTRL_VS_TGFBETA3_IL6_IL23A_CD4_TCELL_UP","GSE17974_CTRL_VS_ACT_IL4_AND_ANTI_IL12_24H_CD4_TCELL_UP","GSE15735_CTRL_VS_HDAC_INHIBITOR_TREATED_CD4_TCELL_2H_UP","GSE7219_UNSTIM_VS_LPS_AND_ANTI_CD40_STIM_DC_UP")), ]
+  } else if (celltype == "CD8") {
+    fgseaRes_C7_Subset_filt_NonImportant <- fgseaRes_C7_Subset[-which(fgseaRes_C7_Subset$pathway %in% c("GSE6259_BCELL_VS_CD8_TCELL_UP","GSE39556_CD8A_DC_VS_NK_CELL_DN","GSE6259_CD4_TCELL_VS_CD8_TCELL_DN","GSE6259_BCELL_VS_CD8_TCELL_DN","GSE7460_CD8_TCELL_VS_TREG_ACT_UP")), ]
+  }
+    
+  
+  if (all(fgseaRes_C7_Subset$NES > 0) == T | all(fgseaRes_C7_Subset$NES < 0) == T) {
+    fgseaRes_C7_Subset_top30 = head(fgseaRes_C7_Subset_filt_NonImportant, 30)
+  } else {
+    fgseaRes_C7_Subset_top30 = rbind(head(fgseaRes_C7_Subset_filt_NonImportant, 15), tail(fgseaRes_C7_Subset_filt_NonImportant, 15))
+  }
+  
+  fgseaRes_C7_Subset_top30$Enrichment = ifelse(fgseaRes_C7_Subset_top30$NES > 0, "Up-regulated", "Down-regulated")
+  
+  #fgseaRes_C7_Subset_top30 = rbind(head(fgseaRes_C7_Subset_top30, n = nrow(subset(fgseaRes_C7_Subset_top30, NES>0))),tail(fgseaRes_C7_Subset_top30, n = nrow(subset(fgseaRes_C7_Subset_top30, NES<0)) ))
+  total_up = sum(fgseaRes_C7_Subset_top30$Enrichment == "Up-regulated")
+  total_down = sum(fgseaRes_C7_Subset_top30$Enrichment == "Down-regulated")
+  header = paste0("Top ",nrow(fgseaRes_C7_Subset_top30)," Enriched ",celltype," related C7 Pathways In ",celltype," Experiment (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+  
+  colos = setNames(c("firebrick2", "dodgerblue2"),
+             c("Up-regulated", "Down-regulated"))
+  
+  
+  fgseaRes_C7_Subset_top30_Volcano_Plot <- ggplot(fgseaRes_C7_Subset_top30, aes(reorder(pathway, NES), NES)) +
+  geom_point( aes(fill = Enrichment, size = size), shape=21) +
+  scale_fill_manual(values = colos ) +
+  scale_size_continuous(range = c(2,10)) +
+  geom_hline(yintercept = 0) +
+  coord_flip() +
+  labs(x="Pathway", y="Normalized Enrichment Score",
+   title=header)
+  png(paste0(outputdir,"/GSEA/",celltype,"_Experiment_",celltype,"_Pathways_top30_GSEA_Plot.png"), units="in", width=15, height=15, res=800)
+  print(fgseaRes_C7_Subset_top30_Volcano_Plot)
+  dev.off()
+  
+  
+  pdf(paste0(outputdir,"/GSEA/",celltype,"_Experiment_",celltype,"_Pathways_top30_GSEA_Plot.pdf"), width=15, height=15)
+  print(fgseaRes_C7_Subset_top30_Volcano_Plot)
+  dev.off()
+
+   
+  
+  ##################HALLMARK plotting
+  
+  
+  if (all(fgseaRes_HALLMARK$NES > 0) == T | all(fgseaRes_HALLMARK$NES < 0) == T) {
+    fgseaRes_HALLMARK_top20 = head(fgseaRes_HALLMARK, 20)
+  } else {
+    fgseaRes_HALLMARK_top20 = rbind(head(fgseaRes_HALLMARK, 10), tail(fgseaRes_HALLMARK, 10))
+  }
+  
+  fgseaRes_HALLMARK_top20$Enrichment = ifelse(fgseaRes_HALLMARK_top20$NES > 0, "Up-regulated", "Down-regulated")
+  
+  #topPathwaysUp <- na.omit(fgseaRes_HALLMARK_top20[NES > 0][order(pval)])
+  #topPathwaysDown <- na.omit(fgseaRes_HALLMARK_top20[NES < 0][order(pval)])
+  #topPathways <- rbind(topPathwaysUp, topPathwaysDown)
+  #
+  total_up = sum(fgseaRes_HALLMARK_top20$Enrichment == "Up-regulated")
+  total_down = sum(fgseaRes_HALLMARK_top20$Enrichment == "Down-regulated")
+  header = paste0("Top ",nrow(fgseaRes_HALLMARK_top20)," Enriched HALLMARK Pathways In ",celltype," Experiment (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+  
+  
+  colos = setNames(c("firebrick2", "dodgerblue2"),
+             c("Up-regulated", "Down-regulated"))
+  #header = paste0("Top ",nrow(topPathways)," Enriched HALLMARK Pathways In", celltype ,"Experiment (Total pathways: Up=", nrow(topPathwaysUp),", Down=",  nrow(topPathwaysDown), ")")
+  
+  fgseaRes_HALLMARK_top20_Volcano_Plot = ggplot(fgseaRes_HALLMARK_top20, aes(reorder(pathway, NES), NES)) +
+  geom_point( aes(fill = Enrichment, size = size), shape=21) +
+  scale_fill_manual(values = colos ) +
+  scale_size_continuous(range = c(2,10)) +
+  geom_hline(yintercept = 0) +
+  coord_flip() +
+  labs(x="Pathway", y="Normalized Enrichment Score",
+   title=header)
+  
+  png(paste0(outputdir,"/GSEA/",celltype,"_Experiment_",celltype,"_HALLMARK_Pathways_top20_GSEA_Plot.png"), units="in", width=15, height=15, res=800)
+  print(fgseaRes_HALLMARK_top20_Volcano_Plot)
+  dev.off()
+  
+  
+  pdf(paste0(outputdir,"/GSEA/",celltype,"_Experiment_",celltype,"_HALLMARK_Pathways_top20_GSEA_Plot.pdf"), width=15, height=15)
+  print(fgseaRes_HALLMARK_top20_Volcano_Plot)
+  dev.off()
+  
+
+  
+  
+  
+  
+
+  ##################HALLMARK plotting
+  
+  
+  if (all(fgseaRes_KEGG_Medicus$NES > 0) == T | all(fgseaRes_KEGG_Medicus$NES < 0) == T) {
+    fgseaRes_KEGG_Medicus_top20 = head(fgseaRes_KEGG_Medicus, 20)
+  } else {
+    fgseaRes_KEGG_Medicus_top20 = rbind(head(fgseaRes_KEGG_Medicus, 10), tail(fgseaRes_KEGG_Medicus, 10))
+  }
+  
+  fgseaRes_KEGG_Medicus_top20$Enrichment = ifelse(fgseaRes_KEGG_Medicus_top20$NES > 0, "Up-regulated", "Down-regulated")
+  
+  total_up = sum(fgseaRes_KEGG_Medicus_top20$Enrichment == "Up-regulated")
+  total_down = sum(fgseaRes_KEGG_Medicus_top20$Enrichment == "Down-regulated")
+  header = paste0("Top ",nrow(fgseaRes_KEGG_Medicus_top20)," Enriched KEGG Medicus Pathways In ",celltype," Experiment (Total pathways: Up=", total_up,", Down=",  total_down, ")")
+  
+  
+  colos = setNames(c("firebrick2", "dodgerblue2"),
+             c("Up-regulated", "Down-regulated"))
+
+  fgseaRes_KEGG_Medicus_top20_Volcano_Plot = ggplot(fgseaRes_KEGG_Medicus_top20, aes(reorder(pathway, NES), NES)) +
+  geom_point( aes(fill = Enrichment, size = size), shape=21) +
+  scale_fill_manual(values = colos ) +
+  scale_size_continuous(range = c(2,10)) +
+  geom_hline(yintercept = 0) +
+  coord_flip() +
+  labs(x="Pathway", y="Normalized Enrichment Score",
+   title=header)
+  
+  png(paste0(outputdir,"/GSEA/",celltype,"_Experiment_",celltype,"_KEGG_Medicus_Pathways_top20_GSEA_Plot.png"), units="in", width=16.5, height=15, res=800)
+  print(fgseaRes_KEGG_Medicus_top20_Volcano_Plot)
+  dev.off()
+  
+  
+  pdf(paste0(outputdir,"/GSEA/",celltype,"_Experiment_",celltype,"_KEGG_Medicus_Pathways_top20_GSEA_Plot.pdf"), width=16, height=15)
+  print(fgseaRes_KEGG_Medicus_top20_Volcano_Plot)
+  dev.off()
+  
+  
+  
+  
+  
+  results_list <- list(c(dba_counts = list(dba_Counts), dba_Counts_norm = list(dba_Counts_norm), dba_Counts_norm_contrast = list(dba_Counts_norm_contrast), dba_Counts_norm_contrast_analyzed = list(dba_Counts_norm_contrast_analyzed), DBS_sig_report = list(DBS_sig), DBS_All_report = list(DBS_All), VolcanoPlot = list(volcano_plot)), Immune_VolcanoPlot = list(ImmuneRelated_volcano_plot), TF_DBS_ALL = list(DBS_All_TFs), fgseaRes_C7 = list(fgseaRes_C7), fgseaRes_C7_Subset = list(fgseaRes_C7_Subset), fgseaRes_HALLMARK = list(fgseaRes_HALLMARK), fgseaRes_KEGG_Medicus = list(fgseaRes_KEGG_Medicus))  
+  saveRDS(object = results_list, file = paste0(outputdir,celltype,'_Results_List_',DE_Method,'_',Normalization_Method,'.RDS'))
+ return(results_list)
+  
+
+} 
+
+
+```
+
+
+
 
 
 ```{r}
@@ -222,6 +684,7 @@ ATAC_Seq_DBS_Analysis <- function(Sample_Sheet_csv_file, celltype, group1, group
 #CD4_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD4_GoodvsPoor_Results/")
 CD4_Good_Poor_Results_List <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./CD4_GoodvsPoor_Results/", dba_counts_RDS_File = "./CD4_GoodvsPoor_Results/CD4_Counts.RDS")
 
+
 #CD4_Good_Poor_Results_List_Deseq2 <- ATAC_Seq_DBS_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05,DE_Method=DBA_DESEQ2, Normalization_Method = DBA_NORM_RLE , outputdir = "./CD4_GoodvsPoor_Results_Deseq/", dba_counts_RDS_File = "./CD4_GoodvsPoor_Results/CD4_Counts.RDS")
 ```
 
@@ -232,6 +695,81 @@ CD4_Counts_norm_contrast_analyzed <- CD4_Good_Poor_Results_List[[1]]$dba_Counts_
 CD4_DBS_sig <- CD4_Good_Poor_Results_List[[1]]$DBS_sig_report
 CD4_DBS_All <- CD4_Good_Poor_Results_List[[1]]$DBS_All_report
 
+#Immune system related genes volcano plot
+#Choose database:
+##C7
+#library(msigdbr)
+
+#immune_genes <- msigdbr(species = "Homo sapiens", category = "C7") # Immunologic signatures
+#immune_gene_vector <- unique(immune_genes$gene_symbol)
+
+
+
+
+##IMMPORT
+# Load necessary libraries
+
+# Define the path where your .txt files are stored
+path_to_files <- "D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/peak_files/Immune-Related_Genes_ImmPort"
+
+# Get a list of all .txt files in the folder
+gene_list_files <- list.files(path = path_to_files, pattern = "\\.txt$", full.names = TRUE)
+
+# Initialize an empty data frame to store all data
+all_gene_lists <- data.frame()
+
+# Loop through each file and read it
+for (file in gene_list_files) {
+  # Read the file into a data frame
+  file_data <- read.table(file, header = TRUE)
+  
+  # Bind this data to the combined data frame
+  all_gene_lists <- rbind(all_gene_lists, file_data)
+}
+
+# Extract the Symbol column and remove duplicates (if any)
+immune_gene_symbols <- unique(all_gene_lists$Symbol)
+
+immune_gene_vector <- immune_gene_symbols
+
+
+
+
+
+
+
+CD4_DBS_ImmuneSystem <- subset(CD4_DBS_All, CD4_DBS_All$SYMBOL %in% immune_gene_vector)
+write.csv(CD4_DBS_ImmuneSystem, "./CD4_GoodvsPoor_Results/CD4_DARs_ImmuneSystemRelatedGenes.csv")
+
+# Identify top significant genes
+top_genes <- CD4_DBS_ImmuneSystem[CD4_DBS_ImmuneSystem$Significance == "Significant",]
+top_genes <- top_genes[order(top_genes$p.value), ] # Order by FDR
+top_genes <- head(top_genes, 10) # Select top 10 genes
+
+# Define significance thresholds
+pval_threshold <- 0.05
+fold_change_threshold <- -log(0.7)
+
+
+# Create the volcano plot using ggplot2
+CD4_ImmuneRelated_volcano_plot <- ggplot(CD4_DBS_ImmuneSystem, aes(x = Fold, y = negLog10Pval_capped, color = Significance, shape = Capped)) +
+geom_point(alpha = 0.5) +
+theme_minimal() +
+scale_color_manual(values = c("Significant" = "red", "Not Significant" = "grey")) +
+scale_shape_manual(values = c("Capped" = 17, "Not Capped" = 16)) + # Different shapes for capped points
+geom_hline(yintercept = -log10(pval_threshold), col = "red", linetype = "dashed") +
+geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
+geom_text_repel(data = top_genes, aes(label = SYMBOL), size = 3) +
+labs(title = paste0("Volcano Plot of Immune-Related Differential Chromatin Accessibility Sites in CD4 Samples"), x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
+ylim(0, 3) +
+annotate("text", x = max(CD4_DBS_ImmuneSystem$Fold), y = 2.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+
+png("./CD4_GoodvsPoor_Results/CD4_ImmuneRelatedGenes_VolcanoPlot_edgeRGLM_TMM.png", units = "in", width = 9, height = 9, res = 800)
+print(CD4_ImmuneRelated_volcano_plot)
+dev.off()
+
+
+
 pvals <- dba.plotBox(CD4_Counts_norm_contrast_analyzed,contrast = 1,bUsePval = T ,method = DBA_EDGER)
 venn_Gain_Loss <- dba.plotVenn(CD4_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_EDGER,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
 
@@ -239,7 +777,7 @@ venn_Gain_Loss <- dba.plotVenn(CD4_Counts_norm_contrast_analyzed, contrast = 1, 
 #Downloaded from AnimalTFDB4
 tf_data <- read.table("Homo_sapiens_TF_AnimalTFDB4.txt", header = TRUE, sep = "\t")
 CD4_DBS_All_TFs <- subset(CD4_DBS_All, CD4_DBS_All$SYMBOL %in% tf_data$Symbol)
-write.csv(CD4_DBS_All_TFs[order(CD4_DBS_All_TFs$p.value,decreasing = FALSE),], "./CD4_GoodvsPoor_Results/CD4_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+write.csv(CD4_DBS_All_TFs[order(CD4_DBS_All_TFs$p.value,decreasing = FALSE),], "./CD4_GoodvsPoor_Results/CD4_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DARs_edgeRGLM_TMM.csv")
 
 ```
 
@@ -257,7 +795,10 @@ df_ForGSEA <- subset(CD4_DBS_All, select = c(Fold,p.value,SYMBOL))
 
 
 C7_Pathways <- gmtPathways("c7.all.v2023.2.Hs.symbols.gmt")
+HALLMARK_Pathways <- gmtPathways("h.all.v2024.1.Hs.symbols.gmt")
 
+#CHOOSE PATHWAYS:
+pathways <- C7_Pathways
 # Prepare the data
 ranks <- df_ForGSEA$Fold
 names(ranks) <- df_ForGSEA$SYMBOL
@@ -267,7 +808,7 @@ barplot(gene_list)
 
 set.seed(123)
 # Perform GSEA
-fgseaRes <- fgsea(pathways = C7_Pathways,
+fgseaRes <- fgsea(pathways = pathways,
                        stats = gene_list,
                        minSize = 15,
                        maxSize = 1000, eps = 0)#nperm = 10000)
@@ -277,7 +818,10 @@ fgseaRes_CD4 <- subset(fgseaRes, grepl("CD4", pathway))
 fgseaRes_CD4 <- fgseaRes_CD4[order(fgseaRes_CD4$NES,decreasing = TRUE),]
 fgseaRes_CD4_csv <- fgseaRes_CD4
 fgseaRes_CD4_csv$leadingEdge <- sapply(fgseaRes_CD4_csv$leadingEdge, paste, collapse = ", ")
+```
 
+
+```{r}
 # Optionally, save these subsets to CSV files
 write.csv(fgseaRes_CD4_csv, file = "./CD4_GoodvsPoor_Results/GSEA/CD4_Experiment_fgseaRes_CD4_C7gmt_sig.csv", row.names = FALSE)
 
@@ -430,122 +974,24 @@ ggplot(topPathways, aes(reorder(pathway, NES), NES)) +
 write.table(fgsea_results, file = "GSEA_C7_fgsea_results.txt", sep = "\t", row.names = FALSE, quote = FALSE)
 ```
 
-```{r}
-
-################################ FOOT PRINTING
-################################ 
-
-library(ATACseqQC)
-library(GenomicRanges)
-library(Rsamtools)
-library(BSgenome.Hsapiens.UCSC.hg38)
-library(motifmatchr)
-library(chromVAR)
-library(SummarizedExperiment)
-library(MotifDb)
-library(GenomicAlignments)
-bamfiles <- list.files(path = "D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output", pattern = "*.bam$", full.names = TRUE)
-
-# Convert consensus peaks to GRanges object
-gr_peaks <- CD4_Counts_norm_contrast_analyzed
-
-# Calculate the Tn5 insertion sites for each BAM file
-bamTn5_list <- lapply(bamfiles, function(bamfile) {
-  alignments <- readGAlignments(bamfile)
-  shifted_alignments <- shiftGAlignmentsList(alignments, genome = BSgenome.Hsapiens.UCSC.hg38, mapqFilter = 30)
-  shifted_alignments
-})
-
-# Combine the insertion sites into a single object
-combined_bamTn5 <- Reduce(c, bamTn5_list)
-
-# Create a combined Footprint Score
-combined_footprints <- footPrint(combined_bamTn5, peaks = gr_peaks, genome = BSgenome.Hsapiens.UCSC.hg38)
-
-# Visualize Combined Footprints
-plotFootprints(combined_footprints)
-
-IRF2 <- query(MotifDb, c("IRF2"))
-IRF2 <- as.list(IRF2)
-print(IRF2[[1]], digits=2)
-
-
-```
-
 
 ```{r}
-#Footprinting another guide
-library(ATACseqQC)
-library(MotifDb)
+### RECREATING PLOTS USING GREAT ###
+#Regions input for GREAT:
 
-library(BSgenome.Hsapiens.UCSC.hg38)
-genome <- Hsapiens
+CD4_Regions <- subset(CD4_DBS_All, select = c(seqnames,start,end))
 
-shifted.bamFile="D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/G08CD4_S145927_NoMT_subset.blacklist-filtered.shifted.sorted.bam"
+# Create a new column 'Region_Name' with values 'Region1', 'Region2', etc.
+CD4_Regions$Region_Name <- paste("Region", seq_len(nrow(CD4_Regions)), sep="")
+CD4_DBS_All$Region <- paste("Region", seq_len(nrow(CD4_DBS_All)), sep="")
 
-library(Rsamtools)
-bamHeader <- scanBamHeader(shifted.bamFile)
-bamSeqnames <- names(bamHeader[[1]]$targets)
-print(bamSeqnames)
-
-PITX3 <- query(MotifDb, c("CTCF"))
-PITX3 <- as.list(PITX3)
-print(PITX3[[1]], digits=2)
-
-pdf("PITX3_footprnt.pdf")
-PITX3 <- factorFootprints(c(shifted.bamFile), pfm=PITX3[[1]],
-                         genome=genome,
-                         min.score="90%", seqlev=bamSeqnames,
-                         upstream=100, downstream=100)
-dev.off()
-
+write.table(CD4_Regions, "D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT\\Peaks\\Input_For_GREAT\\DiffBind\\CD4_Regions_DiffBind_For_Great.bed", col.names = F, row.names = F, quote = F)
 ```
 
 ```{r}
-CD4_DB_DF <- as.data.frame(CD4_Counts_norm_contrast_analyzed.DB)
-
-CD4_DB_DF_merged <- add_gene_names(CD4_DB_DF, CD4_Counts_norm_contrast_analyzed)
-
-write.csv(CD4_DB_DF_merged,"./CD4_Counts_norm_contrast_analyzed_DBS_EDGER_TMM_Names.csv")
-
-
+CD4_GREAT_Good_Poor_Results_List <- ATAC_Seq_DBS_GREAT_Analysis("Sample_Sheet_CD4.csv", "CD4", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./GREAT_CD4_GoodvsPoor_Results/", dba_counts_RDS_File = "./CD4_GoodvsPoor_Results/CD4_Counts.RDS")
 ```
 
-
-```{r}
-# Assuming your GRanges object is named CD4_Counts_norm_contrast_analyzed.DB
-
-# Create Gain and Loss GRanges objects based on Fold change
-gain <- CD4_Counts_norm_contrast_analyzed.DB[CD4_Counts_norm_contrast_analyzed.DB$Fold > 0]
-loss <- CD4_Counts_norm_contrast_analyzed.DB[CD4_Counts_norm_contrast_analyzed.DB$Fold < 0]
-
-# Combine the Gain and Loss GRanges objects into a GRangesList
-granges_list <- GRangesList(Gain = gain, Loss = loss)
-
-# Check the result
-print(granges_list)
-
-
-
-profiles <- dba.plotProfile(CD4_Counts_norm_contrast_analyzed,sites = granges_list)#sites = CD4_Counts_norm_contrast_analyzed.DB)
-png('./CD4_DBA_PlotProfile.png', units="in", width=7, height=7, res=800)
-dba.plotProfile(profiles)
-dev.off()
-
-profiles2 <- dba.plotProfile(CD4_Counts_norm_contrast_analyzed, sites=granges_list, contrast=1, 
-                bHeatmap=TRUE, bLines=TRUE, 
-                labels=c("Good", "Poor"))
-png('./CD4_DBA_PlotProfile2.png', units="in", width=7, height=7, res=800)
-dba.plotProfile(profiles)
-dev.off()
-```
-
-```{r}
-CD4_overlap_rates <- dba.overlap(CD4, mode=DBA_OLAP_RATE)
-plot(CD4_overlap_rates, xlab="Overlapping samples", ylab="Overlapping peaks", type="b")
-
-
-```
 
 
 ```{r}
@@ -563,6 +1009,76 @@ CD8_Counts_norm_contrast_analyzed <- CD8_Good_Poor_Results_List[[1]]$dba_Counts_
 CD8_DBS_sig <- CD8_Good_Poor_Results_List[[1]]$DBS_sig_report
 CD8_DBS_All <- CD8_Good_Poor_Results_List[[1]]$DBS_All_report
 
+
+
+
+
+##IMMPORT
+# Load necessary libraries
+library(dplyr)  # For data manipulation
+
+# Define the path where your .txt files are stored
+path_to_files <- "D:/Kfir/ATAC-Seq/R_DiffBind_Analysis/Bwa-mem_Macs2_Output/peak_files/Immune-Related_Genes_ImmPort"
+
+# Get a list of all .txt files in the folder
+gene_list_files <- list.files(path = path_to_files, pattern = "\\.txt$", full.names = TRUE)
+
+# Initialize an empty data frame to store all data
+all_gene_lists <- data.frame()
+
+# Loop through each file and read it
+for (file in gene_list_files) {
+  # Read the file into a data frame
+  file_data <- read.table(file, header = TRUE)
+  
+  # Bind this data to the combined data frame
+  all_gene_lists <- rbind(all_gene_lists, file_data)
+}
+
+# Extract the Symbol column and remove duplicates (if any)
+immune_gene_symbols <- unique(all_gene_lists$Symbol)
+
+immune_gene_vector <- immune_gene_symbols
+
+
+
+
+
+
+
+CD8_DBS_ImmuneSystem <- subset(CD8_DBS_All, CD8_DBS_All$SYMBOL %in% immune_gene_vector)
+write.csv(CD8_DBS_ImmuneSystem, "./CD8_GoodvsPoor_Results/CD8_DARs_ImmuneSystemRelatedGenes.csv")
+
+# Identify top significant genes
+top_genes <- CD8_DBS_ImmuneSystem[CD8_DBS_ImmuneSystem$Significance == "Significant",]
+top_genes <- top_genes[order(top_genes$p.value), ] # Order by FDR
+top_genes <- head(top_genes, 10) # Select top 10 genes
+
+# Define significance thresholds
+pval_threshold <- 0.05
+fold_change_threshold <- -log(0.7)
+
+
+# Create the volcano plot using ggplot2
+CD8_ImmuneRelated_volcano_plot <- ggplot(CD8_DBS_ImmuneSystem, aes(x = Fold, y = negLog10Pval_capped, color = Significance, shape = Capped)) +
+geom_point(alpha = 0.5) +
+theme_minimal() +
+scale_color_manual(values = c("Significant" = "red", "Not Significant" = "grey")) +
+scale_shape_manual(values = c("Capped" = 17, "Not Capped" = 16)) + # Different shapes for capped points
+geom_hline(yintercept = -log10(pval_threshold), col = "red", linetype = "dashed") +
+geom_vline(xintercept = c(-fold_change_threshold, fold_change_threshold), col = "blue", linetype = "dashed") +
+geom_text_repel(data = top_genes, aes(label = SYMBOL), size = 3) +
+labs(title = paste0("Volcano Plot of Immune-Related Differential Chromatin Accessibility Sites in CD8 Samples"), x = "Log2 Fold Change", y = "-log10(Pvalue)", color = "Gene Significance", shape = "Capped Values") +
+ylim(0, 3) +
+annotate("text", x = max(CD8_DBS_ImmuneSystem$Fold), y = 2.5, label = "Red: Significant genes\n(pvalue < 0.05 and abs(log2Fold) > log2(0.7))", hjust = 1, size = 3)
+
+png("./CD8_GoodvsPoor_Results/CD8_ImmuneRelatedGenes_VolcanoPlot_edgeRGLM_TMM.png", units = "in", width = 9, height = 9, res = 800)
+print(CD8_ImmuneRelated_volcano_plot)
+dev.off()
+
+
+
+
 pvals <- dba.plotBox(CD8_Counts_norm_contrast_analyzed,contrast = 1,bUsePval = T ,method = DBA_EDGER)
 venn_Gain_Loss<-dba.plotVenn(CD8_Counts_norm_contrast_analyzed, contrast = 1, method = DBA_EDGER,bUsePval =TRUE, bDB=TRUE,bGain=TRUE, bLoss=TRUE, bAll=FALSE, th=0.05,label1 = "Good", label2 = "Poor")
 
@@ -570,7 +1086,7 @@ venn_Gain_Loss<-dba.plotVenn(CD8_Counts_norm_contrast_analyzed, contrast = 1, me
 #Downloaded from AnimalTFDB4
 tf_data <- read.table("Homo_sapiens_TF_AnimalTFDB4.txt", header = TRUE, sep = "\t")
 CD8_DBS_All_TFs <- subset(CD8_DBS_All, CD8_DBS_All$SYMBOL %in% tf_data$Symbol)
-write.csv(CD8_DBS_All_TFs[order(CD8_DBS_All_TFs$p.value,decreasing = FALSE),], "./CD8_GoodvsPoor_Results/CD8_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DBSedgeRGLM_TMM.csv")
+write.csv(CD8_DBS_All_TFs[order(CD8_DBS_All_TFs$p.value,decreasing = FALSE),], "./CD8_GoodvsPoor_Results/CD8_Experiment_TF_Genes_ALL_Counts_norm_contrast_analyzed_DARs_edgeRGLM_TMM.csv")
 
 ```
 
@@ -703,280 +1219,205 @@ dev.off()
 
 
 
+```{r}
+### RECREATING PLOTS USING GREAT ###
+#Regions input for GREAT:
 
 
+CD8_Regions <- subset(CD8_DBS_All, select = c(seqnames,start,end))
 
+# Create a new column 'Region_Name' with values 'Region1', 'Region2', etc.
+CD8_Regions$Region_Name <- paste("Region", seq_len(nrow(CD8_Regions)), sep="")
+CD8_DBS_All$Region <- paste("Region", seq_len(nrow(CD8_DBS_All)), sep="")
 
+write.table(CD8_Regions, 
+            "D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT\\Peaks\\Input_For_GREAT\\DiffBind\\CD8_Regions_DiffBind_For_Great.bed", col.names = F, row.names = F, quote = F)
+```
 
+```{r}
+CD8_GREAT_Good_Poor_Results_List <- ATAC_Seq_DBS_GREAT_Analysis("Sample_Sheet_CD8.csv", "CD8", "good", "poor", usePval = T, pval_th = 0.05, outputdir = "./GREAT_CD8_GoodvsPoor_Results/", dba_counts_RDS_File = "./CD8_GoodvsPoor_Results/CD8_Counts.RDS")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 ```{r}
-################################## CD8 ##########################################
+################################### CD8 vs CD4 Results Overlap ###############################
 
-# Set the working directory
-setwd("D:\\Kfir\\ATAC-Seq\\Bwa-mem_Macs2_Output\\peak_files")
+library(ggvenn)
+library(tidyverse)
+library(stats)
 
-# Load the sample sheet
-CD8_samples <- read.csv("Sample_Sheet_CD8.csv")
+CD4_GREAT_Good_Poor_Results_List <- readRDS("D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT_CD4_GoodvsPoor_Results\\CD4_Results_List_edgeRGLM_TMM.RDS")
+CD8_GREAT_Good_Poor_Results_List <- readRDS("D:\\Kfir\\ATAC-Seq\\R_DiffBind_Analysis\\Bwa-mem_Macs2_Output\\peak_files\\GREAT_CD8_GoodvsPoor_Results\\CD8_Results_List_edgeRGLM_TMM.RDS")
 
-# Initialize the dba object with the sample sheet
-CD8 <- dba(sampleSheet=CD8_samples)
-CD8_Counts <- dba.count(CD8, bParallel = TRUE, score=DBA_SCORE_READS)
+#Defining Universe
+CD4_DARs_ALL <- CD4_GREAT_Good_Poor_Results_List[[1]]$VolcanoPlot$data #DBS_sig_report
 
-png('./CD8_Counts_heatmap.png', units="in", width=7, height=7, res=800)
-dba.plotHeatmap(CD8_Counts, main = "Correlation Plot for CD8 Samples")
-#plot(CD8_Counts, main="Correlation Plot for CD8 Samples")
+CD8_DARs_ALL <- CD8_GREAT_Good_Poor_Results_List[[1]]$VolcanoPlot$data #DBS_sig_report
+
+universe = length(unique(c(CD4_DARs_ALL$GREAT_SYMBOL, CD8_DARs_ALL$GREAT_SYMBOL)))
+
+
+#Sig 
+
+CD4_DARs_Sig <- subset(CD4_DARs_ALL, Significance != "Not Significant")
+ 
+CD8_DARs_Sig <- subset(CD8_DARs_ALL, Significance != "Not Significant")
+ 
+
+
+#Up venn
+CD4_DARs_UP <- CD4_DARs_Sig[CD4_DARs_Sig$Fold > 0, ]
+CD8_DARs_UP <- CD8_DARs_Sig[CD8_DARs_Sig$Fold > 0, ]
+
+UP_GGVENN <- ggvenn(list("CD4_UP" = CD4_DARs_UP$GREAT_SYMBOL, "CD8_UP" = CD8_DARs_UP$GREAT_SYMBOL), fill_color = c("#0073C2FF", "#EFC000FF"),stroke_size = 0.5, set_name_size = 4) + ggtitle("Common Up Regulated DARs Between CD4 and CD8 Experiments") + theme(plot.title = element_text(hjust = 0.5))
+
+
+#UP Significance
+q_UP = length(intersect(CD4_DARs_UP$GREAT_SYMBOL, CD8_DARs_UP$GREAT_SYMBOL)) # overlap
+m_UP = length(unique(CD4_DARs_UP$GREAT_SYMBOL)) # number of CD4 upregulated genes
+n_UP = universe - m_UP # remaining genes not in CD4 upregulated set
+k_UP = length(unique(CD8_DARs_UP$GREAT_SYMBOL)) # number of CD8 upregulated genes
+
+p_value_UP <- 1 - phyper(q_UP - 1, m_UP, n_UP,k_UP)
+
+
+
+#Add asterisk to ggvenn plot
+# Define a variable for the significance label
+significance_label <- ""
+
+# Conditional assignment based on p-value thresholds
+if (p_value_UP < 0.0001) {
+  significance_label <- "****"
+} else if (p_value_UP < 0.001) {
+  significance_label <- "***"
+} else if (p_value_UP < 0.01) {
+  significance_label <- "**"
+} else if (p_value_UP < 0.05) {
+  significance_label <- "*"
+}
+
+# Add the significance label to the plot if it exists
+if (significance_label != "") {
+  UP_GGVENN <- UP_GGVENN + 
+    annotate("text", x = 0, y = 1, label = significance_label, size = 5, color = "red")
+}
+
+pdf(".//GREAT_CD4_CD8_Overlap//VennDiagram_DARs_UP_CD4vsCD8_Experiments.pdf", width=6, height=6)
+UP_GGVENN
 dev.off()
 
-png('./CD8_counts_PCA.png', units="in", width=7, height=7, res=800)
-dba.plotPCA(CD8_Counts,DBA_CONDITION, label=c(DBA_ID))
+png(".//GREAT_CD4_CD8_Overlap//VennDiagram_DARs_UP_CD4vsCD8_Experiments.png", units="in", res = 800, width=6, height=6)
+UP_GGVENN
 dev.off()
-```
 
-```{r}
-CD8_overlap_rates <- dba.overlap(CD8, mode=DBA_OLAP_RATE)
-plot(CD8_overlap_rates, xlab="Overlapping samples", ylab="Overlapping peaks", type="b")
+#Creating dataframe with the UP common genes and their logFC values
+CD4_CD8_UP_Common <- intersect(CD4_DARs_UP$GREAT_SYMBOL, CD8_DARs_UP$GREAT_SYMBOL)
+CD4_UP_common_genes <- subset(CD4_DARs_UP, CD4_DARs_UP$GREAT_SYMBOL %in% CD4_CD8_UP_Common) %>%
+  group_by(GREAT_SYMBOL) %>%
+  summarise(CD4_avgLogFC = mean(Fold))
+CD8_UP_common_genes <- subset(CD8_DARs_UP, CD8_DARs_UP$GREAT_SYMBOL %in% CD4_CD8_UP_Common) %>%
+  group_by(GREAT_SYMBOL) %>%
+  summarise(CD8_avgLogFC = mean(Fold))
 
-```
+CD4_CD8_LogFC_UP <- merge(CD4_UP_common_genes, CD8_UP_common_genes, by = "GREAT_SYMBOL")
+write.csv(CD4_CD8_LogFC_UP, ".//GREAT_CD4_CD8_Overlap//CD4_CD8_DARs_UP_LogFC_Common_DARs.csv")
 
+#DOWN VENN
+CD4_DARs_DOWN <- CD4_DARs_Sig[CD4_DARs_Sig$Fold < 0, ]
+CD8_DARs_DOWN <- CD8_DARs_Sig[CD8_DARs_Sig$Fold < 0, ]
 
+DOWN_GGVENN <- ggvenn(list("CD4_DOWN" = CD4_DARs_DOWN$GREAT_SYMBOL, "CD8_DOWN" = CD8_DARs_DOWN$GREAT_SYMBOL), fill_color = c("#0073C2FF", "#EFC000FF"),stroke_size = 0.5, set_name_size = 4) + ggtitle("Common Down Regulated DARs Between CD4 and CD8 Experiments") + theme(plot.title = element_text(hjust = 0.5))
 
 
 
 
+#DOWN Significance
+q_DOWN = length(intersect(CD4_DARs_DOWN$GREAT_SYMBOL, CD8_DARs_DOWN$GREAT_SYMBOL)) # overlap
+m_DOWN = length(unique(CD4_DARs_DOWN$GREAT_SYMBOL)) # number of CD4 upregulated genes
+n_DOWN = universe - m_DOWN # remaining genes not in CD4 upregulated set
+k_DOWN = length(unique(CD8_DARs_DOWN$GREAT_SYMBOL)) # number of CD8 upregulated genes
 
+p_value_DOWN <- 1 - phyper(q_DOWN - 1, m_DOWN, n_DOWN,k_DOWN)
 
 
 
+#Add asterisk to ggvenn plot
+# Define a variable for the significance label
+significance_label <- ""
 
+# Conditional assignment based on p-value thresholds
+if (p_value_DOWN < 0.0001) {
+  significance_label <- "****"
+} else if (p_value_DOWN < 0.001) {
+  significance_label <- "***"
+} else if (p_value_DOWN < 0.01) {
+  significance_label <- "**"
+} else if (p_value_DOWN < 0.05) {
+  significance_label <- "*"
+}
 
+# Add the significance label to the plot if it exists
+if (significance_label != "") {
+  DOWN_GGVENN <- DOWN_GGVENN + 
+    annotate("text", x = 0, y = 1, label = significance_label, size = 5, color = "red")
+}
 
+pdf(".//GREAT_CD4_CD8_Overlap//VennDiagram_DARs_DOWN_CD4vsCD8_Experiments.pdf", width=6, height=6)
+DOWN_GGVENN
+dev.off()
 
+png(".//GREAT_CD4_CD8_Overlap//VennDiagram_DARs_DOWN_CD4vsCD8_Experiments.png", units="in", res = 800, width=6, height=6)
+DOWN_GGVENN
+dev.off()
 
+#Creating dataframe with the DOWN common genes and their logFC values
+CD4_CD8_DOWN_Common <- intersect(CD4_DARs_DOWN$GREAT_SYMBOL, CD8_DARs_DOWN$GREAT_SYMBOL)
+CD4_DOWN_common_genes <- subset(CD4_DARs_DOWN, CD4_DARs_DOWN$GREAT_SYMBOL %in% CD4_CD8_DOWN_Common) %>%
+  group_by(GREAT_SYMBOL) %>%
+  summarise(CD4_avgLogFC = mean(Fold))
+CD8_DOWN_common_genes <- subset(CD8_DARs_DOWN, CD8_DARs_DOWN$GREAT_SYMBOL %in% CD4_CD8_DOWN_Common) %>%
+  group_by(GREAT_SYMBOL) %>%
+  summarise(CD8_avgLogFC = mean(Fold))
 
+CD4_CD8_LogFC_DOWN <- merge(CD4_DOWN_common_genes, CD8_DOWN_common_genes, by = "GREAT_SYMBOL")
+write.csv(CD4_CD8_LogFC_DOWN, ".//GREAT_CD4_CD8_Overlap//CD4_CD8_DARs_DOWN_LogFC_Common_DARs.csv")
 
 
 
+#HEATMAP of COMMON GENES IN GENERAL
+common_genes_vector <- intersect(CD4_DARs_Sig$GREAT_SYMBOL, CD8_DARs_Sig$GREAT_SYMBOL)
 
+CD4_common_genes <- subset(CD4_DARs_Sig, CD4_DARs_Sig$GREAT_SYMBOL %in% common_genes_vector) %>%
+  group_by(GREAT_SYMBOL) %>%
+  summarise(CD4_avgLogFC = mean(Fold))
+CD8_common_genes <- subset(CD8_DARs_Sig, CD8_DARs_Sig$GREAT_SYMBOL %in% common_genes_vector) %>%
+  group_by(GREAT_SYMBOL) %>%
+  summarise(CD8_avgLogFC = mean(Fold))
 
 
+CD4_CD8_Common_General_LogFC <- merge(CD4_common_genes, CD8_common_genes, by = "GREAT_SYMBOL")
 
+#First column to rownames:
+CD4_CD8_Common_General_LogFC <- CD4_CD8_Common_General_LogFC %>% remove_rownames %>% column_to_rownames(var="GREAT_SYMBOL")
 
+CD4_CD8_LogFC_Heatmap_Output <- pheatmap(CD4_CD8_Common_General_LogFC, scale = "none",
+         cluster_rows = T,cutree_rows = 4, treeheight_row = 0,border_color = NA, cellwidth = 150,
+         clustering_distance_rows = "euclidean",
+         cluster_cols = FALSE, 
+         main = "LogFC of Good vs Poor Heatmap for Common DARs Gene Names between CD4 and CD8 Experiments", 
+         color = rev(colorRampPalette(brewer.pal(10, "RdBu"))(256)))
 
+pdf(".//GREAT_CD4_CD8_Overlap//Heatmap_Common_DARs_CD4vsCD8.pdf", width=11, height=12)
+CD4_CD8_LogFC_Heatmap_Output
+dev.off()
 
+png(".//GREAT_CD4_CD8_Overlap//Heatmap_Common_DARs_CD4vsCD8.png", units="in", res = 800, width=11, height=12)
+CD4_CD8_LogFC_Heatmap_Output
+dev.off()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r}
-
-######################            ################
-######################DGE Analysis################
-######################     CD4       ################
-library(ChIPQC)
-library(soGGi)
-peaks <- dir("D:/Kfir/ATAC-Seq/Bwa-mem_Macs2_Output/peak_files", pattern = "CD4.*\\.narrowPeak$", 
-    full.names = TRUE)
-myPeaks <- lapply(peaks, ChIPQC:::GetGRanges, simple = TRUE)
-
-names(myPeaks) <- c("good","good","poor","good","poor","poor","good","good","poor")
-Group <- factor( c("good","good","poor","good","poor","poor","good","good","poor"))
-consensusToCount <- soGGi:::runConsensusRegions(GRangesList(myPeaks))
-
-
-
-
+write.csv(CD4_CD8_Common_General_LogFC[CD4_CD8_LogFC_Heatmap_Output$tree_row$order, ], ".//GREAT_CD4_CD8_Overlap//CD4_CD8_HEATMAP_LogFC_DARs_General_Common_DARs.csv")
 ```
 
 
@@ -984,67 +1425,213 @@ consensusToCount <- soGGi:::runConsensusRegions(GRangesList(myPeaks))
 
 
 
-```{r}
-########################### Heatmap #######################################
-# Step 1: Extract the data matrix from the dba object
-data_matrix <- dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, contrast=1, bUsePval=T, th = 1,
-                               method=DBA_EDGER, correlations=FALSE, scale="row",)
-data_matrix <- as.data.frame(data_matrix)
-
-merged_data <- add_gene_names(data_matrix, CD4_Counts_norm_contrast_analyzed)
-
-merged_data <- subset(merged_data, select = -c(seqnames, start,end,width,strand))
-merged_data <- merged_data %>% select("SYMBOL", everything())
-#rename(merged_data,c("SYMBOL" = "Gene_name"))
-
-averaged_data <- merged_data %>%
-  group_by(SYMBOL) %>%
-  summarise(across(everything(), mean, na.rm = TRUE))
-
-averaged_data <- averaged_data %>% remove_rownames %>% column_to_rownames(var="SYMBOL")
-# Step 3: Plot the heatmap using ComplexHeatmap
-heatmap_colors <- rev(colorRampPalette(brewer.pal(10, "RdBu"))(256))
-
-heatmap_annotation_df <- data.frame(
-  Condition = factor(c("Poor","Poor", "Poor", "Poor", "Good", "Good", "Good","Good","Good")),
-  row.names = colnames(averaged_data)  # Assuming first column is SYMBOL and rest are samples
-)
-
-heatmap_annotation_colors <- list(
-  Condition = c(
-    "Poor" = "red",    # Replace with your desired color
-    "Good" = "blue"    # Replace with your desired color
-  )
-)
-
-
-pheatmap_CD4 <- pheatmap::pheatmap(as.matrix(averaged_data %>% `rownames<-`( NULL )),
-                                   color = heatmap_colors,
-                                   show_row_names = F,
-                                   cluster_rows = T,
-                                   treeheight_row = 0,
-                                   show_column_names = F,
-                                   cluster_cols = T,
-                                   scale="row",
-                                   row_names_gp = gpar(fontsize = 0.5),
-                                   annotation_col = heatmap_annotation_df,
-                                   annotation_colors = heatmap_annotation_colors) 
-pheatmap_CD4
-
-heatmap_toSave_CD4 <- round(pheatmap.scale(averaged_data),2)
-heatmap_toSave_CD4 <- heatmap_toSave_CD4[pheatmap_CD4$tree_row$order, pheatmap_CD4$tree_col$order]
-write.csv(heatmap_toSave_CD4, "pheatmap_CD4.csv")
-
-```
 
 
 
 
 
-```{r}
-#hmap <- colorRampPalette(c("red", "black", "green"))(n = 13)
-#library(RColorBrewer)
-readscores <- dba.plotHeatmap(CD4_Counts_norm_contrast_analyzed, contrast=1, bUsePval = T, method = DBA_EDGER, correlations=FALSE,scale="row", colScheme = colorRampPalette(brewer.pal(10,"RdBu"))(256))
-write.csv(as.data.frame(readscores),"./CD4_Counts_norm_contrast_analyzed_readscoresHeatmap.csv")
 
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

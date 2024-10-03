@@ -1,0 +1,5 @@
+Tried to use the bulk (merged) .narrowPeak file (after modificaion) in the GREAT tool but it was too big for it. Decided to go and do sample by sample and then merge the region-gene associations.
+Choose Human: GRCh38
+Upload to Test regions the modified .narrowPeak file which is a .bed file with "chr" prefixes added and taken only the 3 first columns (chr, start, end)
+Associating genomic regions with genes settings: choose Single nearest gene
+Tick the "Include curated regulatory domains" box.
